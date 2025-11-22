@@ -8,6 +8,46 @@ Telegram-бот для поиска и управления актуальным
 * Анна Богословская 
 
 # Графики и схемы
+```mermaid
+graph TD
+    %% Определяем стили узлов
+    classDef user fill:#f9f,stroke:#333,stroke-width:2px,color:black;
+    classDef tg fill:#37aee2,stroke:#333,stroke-width:2px,color:white;
+    classDef python fill:#ffd43b,stroke:#333,stroke-width:2px,color:black;
+    classDef db fill:#aed581,stroke:#333,stroke-width:2px,color:black;
+
+    %% Узлы
+    User((Пользователь<br>Telegram)):::user
+    TG[Серверы Telegram<br>Bot API]:::tg
+    
+    subgraph Server [Ваш Сервер / Python App]
+        direction TB
+        Aiogram[Aiogram 3<br>Движок бота]:::python
+        Router[Роутер / Handlers<br>Логика обработки]:::python
+        FSM["FSM<br>Машина состояний<br>(Анкеты)"]:::python
+        ORM[SQLAlchemy ORM<br>Работа с данными]:::python
+    end
+    
+    DB[(SQLite<br>База Данных)]:::db
+
+    %% Связи
+    User -->|"1. Нажатия кнопок, команды"| TG
+    TG -->|"2. Webhook / Updates (JSON)"| Aiogram
+    
+    Aiogram -->|"3. Маршрутизация"| Router
+    Router <-->|"4. Управление шагами"| FSM
+    Router -->|"5. Запросы к данным"| ORM
+    
+    ORM <-->|"6. SQL запросы (CRUD)"| DB
+    
+    Router -->|"7. Сформированный ответ"| Aiogram
+    Aiogram -->|"8. Отправка сообщения"| TG
+    TG -->|"9. Сообщение в чате"| User
+
+    %% Применение стилей к рамке
+    style Server fill:#fffcee,stroke:#ffd43b,stroke-width:2px;
+```
+
 # Описание проекта
 
 ## Визуализация интерфейса пользователя
