@@ -220,7 +220,7 @@ sequenceDiagram
 # Описание проекта
 
 ## Визуализация интерфейса пользователя
-
+!(https://github.com/ALEKSEY-MERCEDES/vacancies-service-team/raw/main/Telegram%20Bot%20UI%20Kit%20(Community).png)
 
 ## Распределение задач, времени и  ролей в команде
 | №  | Задача                           | Подзадачи (кратко)                                                  | Оценка (часы) | Ответственный |
