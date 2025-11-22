@@ -48,6 +48,59 @@ graph TD
     style Server fill:#fffcee,stroke:#ffd43b,stroke-width:2px;
 ```
 
+```mermaid
+erDiagram
+    users ||--o| candidates : "имеет профиль (если соискатель)"
+    users ||--o| recruiters : "имеет профиль (если рекрутер)"
+    recruiters ||--o{ vacancies : "публикует (1:N)"
+    candidates ||--o{ applications : "создает (1:N)"
+    vacancies ||--o{ applications : "получает (1:N)"
+
+    users {
+        bigint telegram_id PK "Уникальный ID в ТГ"
+        string username
+        enum role "candidate, recruiter, admin"
+        datetime created_at
+    }
+
+    candidates {
+        int id PK
+        bigint user_id FK "Связь с users"
+        string full_name
+        int age
+        string city
+        string specialization "IT, Маркетинг..."
+        string resume_file_id "ID файла в ТГ"
+        string current_company "Текущее место работы"
+    }
+
+    recruiters {
+        int id PK
+        bigint user_id FK "Связь с users"
+        string company_name
+        boolean is_approved "Подтвержден админом?"
+    }
+
+    vacancies {
+        int id PK
+        int recruiter_id FK "Кто создал"
+        string title "Название должности"
+        string description "Текст вакансии"
+        int salary_min
+        int salary_max
+        string city
+        boolean is_active "Активна ли"
+    }
+
+    applications {
+        int id PK
+        int candidate_id FK "Кто"
+        int vacancy_id FK "Куда"
+        enum status "liked, applied, complained, disliked, invited, rejected"
+        datetime created_at
+    }
+```
+
 # Описание проекта
 
 ## Визуализация интерфейса пользователя
