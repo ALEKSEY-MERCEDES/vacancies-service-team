@@ -104,7 +104,113 @@ erDiagram
     }
 ```
 
+```mermaid 
+graph TD
+    Start(/start) --> CheckDB{Есть в БД?}
+    
+    CheckDB -- Да --> Menu[Главное Меню]
+    CheckDB -- Нет --> RoleSelect{Выбор роли}
+    
+    %% Ветка Соискателя
+    RoleSelect -- Соискатель --> FormCand[FSM: Заполнение анкеты]
+    FormCand --> FileUpload[Загрузка резюме]
+    FileUpload --> SaveCand[Сохранение в БД]
+    SaveCand --> Menu
+    
+    %% Ветка Рекрутера
+    RoleSelect -- Рекрутер --> FormRec[FSM: Описание вакансии]
+    FormRec --> SaveRec[Сохранение в БД]
+    SaveRec --> WaitCheck(Ожидание модерации Админом)
+    
+    WaitCheck -.->|Админ одобрил| Notify(Уведомление в ТГ)
+    Notify --> Menu
+    
+    %% Ветка Админа
+    RoleSelect -- Админ --> ConfigCheck{ID в config.py?}
+    ConfigCheck -- Да --> AdminPanel[Админ Панель]
+    ConfigCheck -- Нет --> Ban[Блокировка]
+```
+
 ```mermaid
+sequenceDiagram
+    actor C as Соискатель
+    participant Bot as Бот (Python)
+    participant DB as База Данных
+    actor R as Рекрутер
+
+    C->>Bot: Нажал "Смотреть вакансии"
+    loop Цикл просмотра
+        Bot->>DB: Запрос: Дай вакансию (которую я не видел, подходит по фильтрам)
+        DB-->>Bot: Данные вакансии (ID: 123)
+        
+        alt Вакансии закончились
+            Bot-->>C: "На сегодня вакансий больше нет"
+        else Вакансия найдена
+            Bot-->>C: Карточка вакансии + Кнопки
+            
+            par Ожидание действия
+                C->>Bot: Нажал "Откликнуться"
+                Bot->>DB: INSERT INTO applications (status='applied')
+                Bot->>R: Уведомление: "Новый отклик на вакансию 123!"
+                Bot-->>C: "Отклик отправлен!"
+            and
+                C->>Bot: Нажал "Лайк"
+                Bot->>DB: INSERT INTO applications (status='liked')
+            and
+                C->>Bot: Нажал "Дизлайк"
+                Bot->>DB: INSERT INTO applications (status='disliked')
+             and
+                C->>Bot: Нажал "Пожаловаться"
+                 Bot->>DB: Отметка вакансии + репорт админу
+            end
+
+            Bot->>Bot: Загрузка следующей вакансии (повтор цикла)
+        end
+    end
+```
+```mermaid
+sequenceDiagram
+    autonumber
+    actor R as Рекрутер (User)
+    participant Bot as Бот (Logic)
+    participant DB as База Данных
+
+    note over R,Bot: Запуск FSM для создания вакансии
+    R->>Bot: Нажал кнопку "Создать вакансию"
+    
+    par Проверка статуса
+        Bot->>DB: SELECT: Проверить статус is_approved
+        DB-->>Bot: is_approved = True (Одобрен)
+    and
+        Bot->>Bot: Запуск FSM: VacancyCreation
+    end
+
+    rect rgb(19, 94, 123)
+    note right of Bot: Пошаговый сбор данных (FSM)
+    
+    Bot->>R: Запрос: Введите название должности
+    R->>Bot: Вводит Название
+    
+    Bot->>R: Запрос: Описание вакансии
+    R->>Bot: Вводит Описание
+    
+    Bot->>R: Запрос: Вилка зарплаты (от-до)
+    R->>Bot: Вводит Зарплату
+    
+    Bot->>R: Запрос: Город
+    R->>Bot: Вводит Город
+
+    Bot->>R: Запрос: Формат работы
+    R->>Bot: Вводит Формат работы
+    end
+    
+    note over Bot,DB: Сохранение и публикация
+    Bot->>DB: INSERT INTO vacancies (recruiter_id, title, description, ...)
+    DB-->>Bot: ID новой вакансии
+    
+    Bot-->>R: Подтверждение: "Вакансия опубликована!"
+```
+
 
 # Описание проекта
 
