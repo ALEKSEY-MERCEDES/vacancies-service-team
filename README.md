@@ -8,6 +8,8 @@ Telegram-бот для поиска и управления актуальным
 * Анна Богословская 
 
 # Графики и схемы
+
+График 
 ```mermaid
 graph TD
     %% Определяем стили узлов
@@ -98,8 +100,11 @@ erDiagram
         int vacancy_id FK "Куда"
         enum status "liked, applied, complained, disliked, invited, rejected"
         datetime created_at
+        boolean seen
     }
 ```
+
+```mermaid
 
 # Описание проекта
 
