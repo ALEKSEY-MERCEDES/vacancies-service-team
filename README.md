@@ -9,7 +9,7 @@ Telegram-бот для поиска и управления актуальным
 
 # Графики и схемы
 
-Архитектура бота вакансий
+##Архитектура бота вакансий
 ```mermaid
 graph TD
     %% Определяем стили узлов
@@ -50,7 +50,7 @@ graph TD
     style Server fill:#fffcee,stroke:#ffd43b,stroke-width:2px;
 ```
 
-Реляционная база данных
+##Реляционная база данных
 ```mermaid
 erDiagram
     users ||--o| candidates : "имеет профиль (если соискатель)"
@@ -105,7 +105,7 @@ erDiagram
     }
 ```
 
-Регистрация пользователей
+##Регистрация пользователей
 ```mermaid 
 graph TD
     Start(/start) --> CheckDB{Есть в БД?}
@@ -133,7 +133,7 @@ graph TD
     ConfigCheck -- Нет --> Ban[Блокировка]
 ```
 
-Описание действий соискателя
+##Описание действий соискателя
 ```mermaid
 sequenceDiagram
     actor C as Соискатель
@@ -172,7 +172,7 @@ sequenceDiagram
     end
 ```
 
-Описание действий рекрутера
+##Описание действий рекрутера
 ```mermaid
 sequenceDiagram
     autonumber
