@@ -222,18 +222,22 @@ sequenceDiagram
 ## Визуализация интерфейса пользователя
 <div align="center">
   
-### Скриншоты работы бота
+### Работа бота от лица соискателя
 
 <img src="images/photo_2025-11-25_13-02-10.jpg" width="280" alt="Сообщение бота 1">
 <img src="images/photo_2025-11-25_13-02-27.jpg" width="280" alt="Сообщение бота 2">
 <img src="images/photo_2025-11-25_13-02-52.jpg" width="280" alt="Сообщение бота 3">
+<img src="images/photo_2025-11-25_13-41-47.jpg" width="280" alt="Сообщение бота 8">
 
+### Работа бота от лица рекрутера
 <img src="images/photo_2025-11-25_13-03-10.jpg" width="280" alt="Сообщение бота 4">
+
+### Работа бота от лица админа
 <img src="images/photo_2025-11-25_13-03-29.jpg" width="280" alt="Сообщение бота 5">
 <img src="images/photo_2025-11-25_13-03-49.jpg" width="280" alt="Сообщение бота 6">
 
 <img src="images/photo_2025-11-25_13-04-11.jpg" width="280" alt="Сообщение бота 7">
-<img src="images/photo_2025-11-25_13-41-47.jpg" width="280" alt="Сообщение бота 8">
+
 <img src="images/photo_2025-11-25_13-42-21.jpg" width="280" alt="Сообщение бота 9">
 
 </div>
