@@ -17,30 +17,28 @@ def register_handlers(dp: Dispatcher):
     dp.message.register(name_received, RegStates.waiting_for_name)
     dp.message.register(resume_received, RegStates.waiting_for_resume)
 
-# ---- ШАГ 1: выбор роли через кнопки ----
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
+    # Кнопки только для Соискателя и Рекрутера
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
             [types.KeyboardButton("Соискатель")],
-            [types.KeyboardButton("Рекрутер")],
-            [types.KeyboardButton("Админ")]
+            [types.KeyboardButton("Рекрутер")]
         ],
         resize_keyboard=True
     )
-    await message.answer("Выберите роль:", reply_markup=keyboard)
+    await message.answer("Выберите роль (или введите 'Админ' вручную):", reply_markup=keyboard)
     await state.set_state(RegStates.waiting_for_role)
 
 async def role_chosen(message: Message, state: FSMContext):
     role = message.text.strip().lower()
     if role not in {"соискатель", "рекрутер", "админ"}:
-        await message.answer("Пожалуйста, выберите роль из кнопок")
+        await message.answer("Пожалуйста, выберите роль из кнопок или введите 'Админ' вручную")
         return
     await state.update_data(role=role)
     await message.answer("Введите ваше имя:", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(RegStates.waiting_for_name)
 
-# ---- ШАГ 2: ввод имени ----
 async def name_received(message: Message, state: FSMContext):
     await state.update_data(name=message.text.strip())
 
@@ -52,14 +50,15 @@ async def name_received(message: Message, state: FSMContext):
         ],
         resize_keyboard=True
     )
-    await message.answer("Пришлите текстовое резюме или выберите вариант 'Отправить файл':", reply_markup=keyboard)
+    await message.answer(
+        "Пришлите текстовое резюме или выберите вариант 'Отправить файл':",
+        reply_markup=keyboard
+    )
     await state.set_state(RegStates.waiting_for_resume)
 
-# ---- ШАГ 3: ввод резюме ----
 async def resume_received(message: Message, state: FSMContext):
     data = await state.get_data()
 
-    resume_text = None
     if message.text and message.text not in {"Прислать текст резюме", "Отправить файл резюме"}:
         resume_text = message.text
     else:
@@ -71,6 +70,9 @@ async def resume_received(message: Message, state: FSMContext):
         name=data["name"],
         resume=resume_text
     )
+
+    # заглушка
     await create_user_stub(user)
+
     await message.answer("Регистрация завершена!", reply_markup=types.ReplyKeyboardRemove())
     await state.clear()
