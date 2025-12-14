@@ -4,7 +4,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from db.schemas import UserCreate
-from db.repo import create_user_stub
+from db.repo import create_user_stub, check_user_stub
 
 class RegStates(StatesGroup):
     waiting_for_role = State()
@@ -17,9 +17,17 @@ def register_handlers(dp: Dispatcher):
     dp.message.register(name_received, RegStates.waiting_for_name)
     dp.message.register(resume_received, RegStates.waiting_for_resume)
 
+# проверка пользователя
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
-    # Кнопки только для Соискателя и Рекрутера
+
+    user_exists = await check_user_stub(message.from_user.id)
+    if user_exists:
+        await message.answer(f"Добро пожаловать обратно, {user_exists.name}!")
+        # Тут можно показать главное меню
+        return
+
+    # Кнопки
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
             [types.KeyboardButton("Соискатель")],
@@ -30,6 +38,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.answer("Выберите роль (или введите 'Админ' вручную):", reply_markup=keyboard)
     await state.set_state(RegStates.waiting_for_role)
 
+# выбор роли
 async def role_chosen(message: Message, state: FSMContext):
     role = message.text.strip().lower()
     if role not in {"соискатель", "рекрутер", "админ"}:
@@ -39,10 +48,10 @@ async def role_chosen(message: Message, state: FSMContext):
     await message.answer("Введите ваше имя:", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(RegStates.waiting_for_name)
 
+# ввод имени
 async def name_received(message: Message, state: FSMContext):
     await state.update_data(name=message.text.strip())
 
-    # Шаг 3: выбор типа резюме через кнопки
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
             [types.KeyboardButton("Прислать текст резюме")],
@@ -56,6 +65,7 @@ async def name_received(message: Message, state: FSMContext):
     )
     await state.set_state(RegStates.waiting_for_resume)
 
+# ввод резюме
 async def resume_received(message: Message, state: FSMContext):
     data = await state.get_data()
 
@@ -71,8 +81,6 @@ async def resume_received(message: Message, state: FSMContext):
         resume=resume_text
     )
 
-    # заглушка
     await create_user_stub(user)
-
     await message.answer("Регистрация завершена!", reply_markup=types.ReplyKeyboardRemove())
     await state.clear()

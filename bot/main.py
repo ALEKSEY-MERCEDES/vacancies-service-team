@@ -5,7 +5,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from bot.handlers.registration import register_handlers
 from dotenv import load_dotenv
 
-load_dotenv()  # загружаем токены из .env
+load_dotenv()
 
 TOKEN = os.getenv("TG_BOT_TOKEN")
 
