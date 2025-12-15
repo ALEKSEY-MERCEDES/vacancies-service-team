@@ -53,56 +53,87 @@ graph TD
 ## Реляционная база данных
 ```mermaid
 erDiagram
-    users ||--o| candidates : "имеет профиль (если соискатель)"
-    users ||--o| recruiters : "имеет профиль (если рекрутер)"
-    recruiters ||--o{ vacancies : "публикует (1:N)"
-    candidates ||--o{ applications : "создает (1:N)"
-    vacancies ||--o{ applications : "получает (1:N)"
+    users ||--o| candidates : candidate_profile
+    users ||--o| recruiters : recruiter_profile
+
+    recruiters ||--o{ recruiter_companies : recruiter_company
+    companies  ||--o{ recruiter_companies : recruiter_company
+
+    companies  ||--o{ vacancies : company_vacancies
+    recruiters ||--o{ vacancies : recruiter_created
+
+    candidates ||--o{ reactions : candidate_reactions
+    vacancies  ||--o{ reactions : vacancy_reactions
+
+    candidates ||--o{ applications : candidate_applications
+    vacancies  ||--o{ applications : vacancy_applications
+
+    candidates ||--o{ candidate_company_blocks : candidate_blocks
+    companies  ||--o{ candidate_company_blocks : company_blocked
 
     users {
-        bigint telegram_id PK "Уникальный ID в ТГ"
+        uuid id PK
+        bigint telegram_id "UNIQUE"
         string username
-        enum role "candidate, recruiter, admin"
+        string role "candidate|recruiter|admin"
         datetime created_at
     }
 
     candidates {
-        int id PK
-        bigint user_id FK "Связь с users"
-        string full_name
-        int age
-        string city
-        string specialization "IT, Маркетинг..."
-        string resume_file_id "ID файла в ТГ"
-        string current_company "Текущее место работы"
+        uuid id PK
+        uuid user_id FK "UNIQUE users.id"
     }
 
     recruiters {
-        int id PK
-        bigint user_id FK "Связь с users"
-        string company_name
-        boolean is_approved "Подтвержден админом?"
+        uuid id PK
+        uuid user_id FK "UNIQUE users.id"
+    }
+
+    companies {
+        uuid id PK
+        string name "UNIQUE"
+        boolean is_active
+        datetime created_at
+    }
+
+    recruiter_companies {
+        uuid recruiter_id PK, FK
+        uuid company_id PK, FK
     }
 
     vacancies {
-        int id PK
-        int recruiter_id FK "Кто создал"
-        string title "Название должности"
-        string description "Текст вакансии"
-        int salary_min
-        int salary_max
-        string city
-        boolean is_active "Активна ли"
+        uuid id PK
+        string title
+        string description
+        string status "open|closed|archived"
+        uuid company_id FK
+        uuid recruiter_id FK
+        datetime created_at
+    }
+
+    reactions {
+        uuid id PK
+        uuid candidate_id FK
+        uuid vacancy_id FK
+        string value "like|dislike"
+        datetime created_at
     }
 
     applications {
-        int id PK
-        int candidate_id FK "Кто"
-        int vacancy_id FK "Куда"
-        enum status "liked, applied, complained, disliked, invited, rejected"
+        uuid id PK
+        uuid candidate_id FK
+        uuid vacancy_id FK
+        string status "sent|viewed|invited|rejected"
+        string message
         datetime created_at
-        boolean seen
     }
+
+    candidate_company_blocks {
+        uuid candidate_id PK, FK
+        uuid company_id PK, FK
+        datetime created_at
+    }
+
 ```
 
 ## Регистрация пользователей
