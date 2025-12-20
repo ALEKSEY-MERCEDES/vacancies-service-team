@@ -7,6 +7,8 @@ from .recruiter_company import RecruiterCompany
 from .reaction import Reaction
 from .application import Application
 from .candidate_company_block import CandidateCompanyBlock
+from .admin import AdminWhitelist
+
 __all__ = [
     "User",
     "Company",
@@ -17,4 +19,5 @@ __all__ = [
     "Reaction",
     "Application",
     "CandidateCompanyBlock",
+    "AdminWhitelist",
 ]

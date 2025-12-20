@@ -13,6 +13,10 @@ def role_keyboard() -> InlineKeyboardMarkup:
                     text="👨‍💼 Рекрутер",
                     callback_data="role_recruiter",
                 ),
+                InlineKeyboardButton(
+                    text="👨‍💼 Админ",
+                    callback_data="role_admin",
+                )
             ]
         ]
     )

@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.filters import CommandStart
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from sqlalchemy import select
@@ -11,35 +12,34 @@ import logging
 logger = logging.getLogger(__name__)
 router = Router()
 
-
 @router.callback_query(F.data == "role_candidate")
 async def start_candidate(callback: CallbackQuery, state: FSMContext):
     await state.set_state(CandidateRegistration.full_name)
     await callback.message.answer("Введите ФИО:")
 
 
-@router.message(CandidateRegistration.full_name)
+@router.message(CandidateRegistration.full_name, ~F.text.startswith("/"))
 async def cand_name(message: Message, state: FSMContext):
     await state.update_data(full_name=message.text)
     await state.set_state(CandidateRegistration.age)
     await message.answer("Введите возраст:")
 
 
-@router.message(CandidateRegistration.age)
+@router.message(CandidateRegistration.age, ~F.text.startswith("/"))
 async def cand_age(message: Message, state: FSMContext):
     await state.update_data(age=message.text)
     await state.set_state(CandidateRegistration.skills)
     await message.answer("Введите навыки:")
 
 
-@router.message(CandidateRegistration.skills)
+@router.message(CandidateRegistration.skills, ~F.text.startswith("/"))
 async def cand_skills(message: Message, state: FSMContext):
     await state.update_data(skills=message.text)
     await state.set_state(CandidateRegistration.current_company)
     await message.answer("Введите текущую компанию (или '-'):")
 
 
-@router.message(CandidateRegistration.current_company)
+@router.message(CandidateRegistration.current_company, ~F.text.startswith("/"))
 async def cand_company(message: Message, state: FSMContext):
     await state.update_data(current_company=message.text)
     await state.set_state(CandidateRegistration.resume)
@@ -47,7 +47,7 @@ async def cand_company(message: Message, state: FSMContext):
 
 
 
-@router.message(CandidateRegistration.resume, F.document)
+@router.message(CandidateRegistration.resume, ~F.document, ~F.text.startswith("/"))
 async def cand_resume(message: Message, state: FSMContext):
     if not is_valid_resume(message.document):
         await message.answer("Неверный формат или файл слишком большой")
