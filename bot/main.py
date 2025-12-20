@@ -1,6 +1,8 @@
 import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+from dotenv import load_dotenv
+load_dotenv()
 
 from infrastructure.config import settings
 from bot.routers import start, registration_candidate, registration_recruiter
