@@ -7,6 +7,7 @@ from sqlalchemy import engine_from_config, pool
 
 from infrastructure.config import settings
 from infrastructure.db.base import Base
+from infrastructure.db.models import *
 import infrastructure.db.models  # ВАЖНО: регистрирует все модели
 
 
