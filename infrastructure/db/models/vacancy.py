@@ -13,7 +13,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from infrastructure.db.base import Base
-
+from sqlalchemy import Integer, Boolean
 
 class Vacancy(Base):
     __tablename__ = "vacancies"
@@ -21,11 +21,17 @@ class Vacancy(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        server_default=text("gen_random_uuid()"),  # ← ТУТ
     )
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    salary_from: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    salary_to: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    city: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    is_remote: Mapped[bool] = mapped_column(Boolean, server_default="false",
+                                            nullable=False)
 
     status: Mapped[str] = mapped_column(
         String(16),

@@ -1,8 +1,9 @@
 import uuid
+from datetime import datetime
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import String, DateTime, ForeignKey, func, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from infrastructure.db.base import Base
 
@@ -13,7 +14,7 @@ class Recruiter(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        server_default="gen_random_uuid()",
+        server_default=text("gen_random_uuid()"),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -23,4 +24,20 @@ class Recruiter(Base):
         nullable=False,
     )
 
-    user = relationship("User", backref="recruiter", lazy="joined")
+    # pending | approved | rejected
+    status: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        server_default="pending",
+    )
+
+    full_name_position: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )

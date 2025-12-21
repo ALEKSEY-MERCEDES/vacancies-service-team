@@ -8,7 +8,9 @@ from .reaction import Reaction
 from .application import Application
 from .candidate_company_block import CandidateCompanyBlock
 from .admin import AdminWhitelist
-
+from .user import User
+from .candidate import Candidate
+from .recruiter import Recruiter
 __all__ = [
     "User",
     "Company",

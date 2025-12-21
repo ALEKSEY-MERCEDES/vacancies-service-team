@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 from bot.routers import registration_admin
-
+from bot.routers import recruiter_common
 from infrastructure.config import settings
 from bot.routers import start, registration_candidate, registration_recruiter, registration_admin, reset
 
@@ -20,7 +20,7 @@ async def main():
     dp.include_router(registration_recruiter.router)
     dp.include_router(registration_admin.router)
     dp.include_router(reset.router)
-
+    dp.include_router(recruiter_common.router)
     await dp.start_polling(bot)
 
 
