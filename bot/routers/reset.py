@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy import select, delete
 
 from infrastructure.db.session import get_session
-from infrastructure.db.models import User, Candidate
+from infrastructure.db.models import User, Candidate, Recruiter
 
 router = Router()
 
@@ -21,7 +21,10 @@ async def wipe_me_cb(callback: CallbackQuery, state: FSMContext):
             await callback.answer()
             return
 
-        await session.execute(delete(Candidate).where(Candidate.user_id == user.id))
+        await session.execute(
+            delete(Candidate).where(Candidate.user_id == user.id))
+        await session.execute(
+            delete(Recruiter).where(Recruiter.user_id == user.id))
         await session.execute(delete(User).where(User.id == user.id))
         await session.commit()
 

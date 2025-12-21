@@ -46,12 +46,18 @@ async def cand_company(message: Message, state: FSMContext):
     await message.answer("Загрузите резюме (PDF / DOCX, до 20 МБ):")
 
 
+@router.message(CandidateRegistration.resume, F.text, ~F.text.startswith("/"))
+async def cand_resume_wrong(message: Message, state: FSMContext):
+    await message.answer("Пришлите файл резюме (PDF/DOCX), пожалуйста 🙂")
 
-@router.message(CandidateRegistration.resume, ~F.document, ~F.text.startswith("/"))
+
+
+@router.message(CandidateRegistration.resume, F.document)
 async def cand_resume(message: Message, state: FSMContext):
     if not is_valid_resume(message.document):
         await message.answer("Неверный формат или файл слишком большой")
         return
+
 
     data = await state.get_data()
     full_name = data.get("full_name")
@@ -59,7 +65,6 @@ async def cand_resume(message: Message, state: FSMContext):
     skills = data.get("skills")
     current_company = data.get("current_company")
 
-    # аккуратно приводим возраст к int
     try:
         age = int(age_raw) if age_raw is not None else None
     except ValueError:
@@ -70,7 +75,6 @@ async def cand_resume(message: Message, state: FSMContext):
     resume_file_id = message.document.file_id
 
     async for session in get_session():
-        # 1) найти пользователя по telegram_id, чтобы не плодить дубликаты
         result = await session.execute(
             select(User).where(User.telegram_id == message.from_user.id)
         )
@@ -83,9 +87,11 @@ async def cand_resume(message: Message, state: FSMContext):
                 role="candidate",
             )
             session.add(user)
-            await session.flush()  # чтобы получить user.id (UUID)
+            await session.flush()
+        else:
+            # если был другой ролью — обновим
+            user.role = "candidate"
 
-        # 2) найти кандидата по user_id
         result = await session.execute(
             select(Candidate).where(Candidate.user_id == user.id)
         )
@@ -95,13 +101,6 @@ async def cand_resume(message: Message, state: FSMContext):
             candidate = Candidate(user_id=user.id)
             session.add(candidate)
 
-        # === ЛОГ ДО СОХРАНЕНИЯ ===
-        logger.info(
-            "Saving candidate full_name=%s user_id=%s",
-            full_name, str(user.id)
-        )
-
-        # 3) записать анкету в таблицу candidates
         candidate.full_name = full_name
         candidate.age = age
         candidate.skills = skills
@@ -110,9 +109,8 @@ async def cand_resume(message: Message, state: FSMContext):
 
         await session.commit()
 
-        # === ЛОГ ПОСЛЕ COMMIT ===
-        logger.info("Candidate saved")
-
     await state.clear()
     await message.answer("Профиль создан ✅", reply_markup=candidate_menu())
+
+
 

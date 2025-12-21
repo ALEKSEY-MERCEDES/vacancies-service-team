@@ -19,13 +19,3 @@ def recruiter_menu():
             [InlineKeyboardButton(text="🔄 Начать заново", callback_data="wipe_me")],
         ]
     )
-
-
-def admin_menu():
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="✅ Одобрить рекрутера", callback_data="admin_approve_recruiters")],
-            [InlineKeyboardButton(text="🏢 Компании", callback_data="admin_companies")],
-            [InlineKeyboardButton(text="📄 Вакансии", callback_data="admin_vacancies")],
-        ]
-    )
