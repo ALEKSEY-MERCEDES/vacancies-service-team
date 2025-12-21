@@ -7,7 +7,8 @@ load_dotenv()
 from bot.routers import registration_admin
 
 from infrastructure.config import settings
-from bot.routers import start, registration_candidate, registration_recruiter, reset
+from bot.routers import start, registration_candidate, registration_recruiter, registration_admin, reset
+
 
 
 async def main():
