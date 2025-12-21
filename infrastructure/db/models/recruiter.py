@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import ForeignKey, String, DateTime, func, text, Boolean
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship, backref
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from infrastructure.db.base import Base
 
@@ -49,16 +49,4 @@ class Recruiter(Base):
         nullable=False,
     )
 
-    user = relationship(
-    "User",
-    backref=backref("recruiter", uselist=False),
-    lazy="joined",
-)
-
-    # Связь с компаниями через промежуточную таблицу
-    companies = relationship(
-        "Company",
-        secondary="recruiter_companies",
-        backref="recruiters",
-        lazy="selectin"
-    )
+    user = relationship("User", backref="recruiter", lazy="joined")

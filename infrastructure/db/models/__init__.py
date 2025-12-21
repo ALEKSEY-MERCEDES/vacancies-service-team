@@ -14,7 +14,7 @@ __all__ = [
     "User",
     "Candidate",
     "Recruiter",
-    "recruiter_application",
+    "RecruiterApplication",
     "Company",
     "Vacancy",
     "Application",
