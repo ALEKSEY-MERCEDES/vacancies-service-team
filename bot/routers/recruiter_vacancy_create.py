@@ -34,7 +34,7 @@ async def _get_company_id_for_recruiter(session, recruiter_id):
     return company_id
 
 
-@router.callback_query(F.data == "recruiter_create_vacancy")
+@router.callback_query(F.data == "r:create_vacancy")
 async def start_create_vacancy(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await state.set_state(VacancyCreate.title)

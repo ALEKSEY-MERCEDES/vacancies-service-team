@@ -18,7 +18,7 @@ def recruiter_vacancies_kb(vacancies: list[dict]) -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(
                 text="🔙 Назад",
-                callback_data="recruiter_main",
+                callback_data="r:menu",
             )
         ]
     )

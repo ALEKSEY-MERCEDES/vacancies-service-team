@@ -102,15 +102,36 @@ async def rec_finish(message: Message, state: FSMContext):
         # 4) Связка recruiter_companies
         await session.execute(
             delete(RecruiterCompany).where(
-                RecruiterCompany.recruiter_id == recruiter.id,
-                RecruiterCompany.company_id == company.id,
+                RecruiterCompany.recruiter_id == recruiter.id
             )
         )
-        session.add(RecruiterCompany(recruiter_id=recruiter.id, company_id=company.id))
+        session.add(
+            RecruiterCompany(recruiter_id=recruiter.id, company_id=company.id))
 
         # ══════════════════════════════════════════════════════════
         # 5) НОВОЕ: Создаём заявку для админа
         # ══════════════════════════════════════════════════════════
+        existing_pending = await session.execute(
+            select(RecruiterApplication).where(
+                RecruiterApplication.recruiter_id == recruiter.id,
+                RecruiterApplication.status == "pending",
+            )
+        )
+        if existing_pending.scalar_one_or_none() is None:
+            # создаём новую заявку
+            max_num_result = await session.execute(
+                select(sql_func.coalesce(
+                    sql_func.max(RecruiterApplication.application_number), 0))
+            )
+            next_number = (max_num_result.scalar() or 0) + 1
+
+            application = RecruiterApplication(
+                application_number=next_number,
+                recruiter_id=recruiter.id,
+                company_id=company.id,
+                status="pending",
+            )
+            session.add(application)
 
         # Получаем следующий номер заявки
         max_num_result = await session.execute(

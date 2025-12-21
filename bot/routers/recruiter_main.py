@@ -8,7 +8,7 @@ from infrastructure.db.models import User, Recruiter, Vacancy, Application
 router = Router()
 
 
-@router.callback_query(F.data == "recruiter_main")
+@router.callback_query(F.data == "r:menu")
 async def recruiter_main(callback: CallbackQuery):
     tg_id = callback.from_user.id
 

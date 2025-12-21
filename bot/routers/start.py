@@ -7,10 +7,10 @@ from bot.keyboards.role import role_keyboard
 from bot.keyboards.common import candidate_menu, recruiter_menu
 from bot.keyboards.recruiter import recruiter_main_menu, recruiter_pending_menu
 from bot.utils.recruiter_access import get_recruiter_bundle
-
 from infrastructure.db.session import get_session
 from infrastructure.db.models import User
-from bot.keyboards.admin import admin_menu
+from bot.keyboards.admin import admin_main_menu
+from bot.routers.registration_admin import get_admin_stats, format_admin_panel
 router = Router()
 
 
@@ -33,7 +33,12 @@ async def start_cmd(message: Message, state: FSMContext):
             return
 
         if user.role == "admin":
-            await message.answer("Админ меню", reply_markup=admin_menu())
+            stats = await get_admin_stats(session)
+            await message.answer(
+                "✅ Админ-доступ подтверждён\n\n" + format_admin_panel(stats),
+                reply_markup=admin_main_menu(stats["pending_applications"]),
+                parse_mode="HTML",
+            )
             return
 
         if user.role == "recruiter":

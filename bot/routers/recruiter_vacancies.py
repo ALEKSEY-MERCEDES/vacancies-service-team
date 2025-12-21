@@ -9,7 +9,7 @@ from bot.keyboards.recruiter_vacancies import recruiter_vacancies_kb
 router = Router()
 
 
-@router.callback_query(F.data == "recruiter_vacancies")
+@router.callback_query(F.data == "r:my_vacancies")
 async def recruiter_vacancies(callback: CallbackQuery):
     tg_id = callback.from_user.id
 
