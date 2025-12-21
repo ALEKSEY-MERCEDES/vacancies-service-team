@@ -1,3 +1,7 @@
+from aiogram.types import InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
@@ -19,3 +23,12 @@ def recruiter_main_menu() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔄 Начать заново", callback_data="wipe_me")],
         ]
     )
+
+def vacancy_preview_menu(vacancy_id: str) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    kb.button(text="✅ Опубликовать", callback_data=f"recruiter_vacancy_publish:{vacancy_id}")
+    kb.button(text="❌ Отменить", callback_data="recruiter_vacancy_cancel")
+    kb.button(text="🔙 В кабинет", callback_data="recruiter_main")
+    kb.adjust(1)
+    return kb.as_markup()
+

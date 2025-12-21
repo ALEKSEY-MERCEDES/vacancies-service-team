@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 
 from infrastructure.db.session import get_session
 from bot.utils.recruiter_access import get_recruiter_bundle
-from bot.keyboards.recruiter import recruiter_main_menu, recruiter_pending_menu
+from bot.keyboards.recruiter import recruiter_main_menu,recruiter_pending_menu
 from bot.keyboards.role import role_keyboard
 
 router = Router()
@@ -23,7 +23,7 @@ async def r_check_status(cb: CallbackQuery):
         if not recruiter.is_approved:
             await cb.message.answer(
                 "⏳ Вы всё ещё на модерации. Админ скоро проверит данные.",
-                reply_markup=recruiter_pending_menu()
+                reply_markup=recruiter_pending_menu
             )
             await cb.answer()
             return
