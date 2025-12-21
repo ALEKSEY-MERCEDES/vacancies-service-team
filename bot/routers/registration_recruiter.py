@@ -1,13 +1,16 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
-from sqlalchemy import select, func as sql_func
+from sqlalchemy import select, delete, func as sql_func  # ← добавить sql_func
 
 from bot.states.recruiter import RecruiterRegistration
+from bot.keyboards.recruiter import recruiter_pending_menu
 
 from infrastructure.db.session import get_session
-from infrastructure.db.models import User, Recruiter, RecruiterApplication, \
-    Company, RecruiterCompany
+from infrastructure.db.models import (
+    User, Recruiter, Company, RecruiterCompany,
+    RecruiterApplication  # ← добавить
+)
 
 router = Router()
 
@@ -22,7 +25,7 @@ async def start_recruiter(callback: CallbackQuery, state: FSMContext):
 
 @router.message(RecruiterRegistration.company_name, ~F.text.startswith("/"))
 async def rec_company(message: Message, state: FSMContext):
-    """Шаг 1: Сохраняем название компании в FSM и переходим к следующему шагу"""
+    """Шаг 1: Сохраняем название компании в FSM"""
     await state.update_data(company_name=message.text.strip())
     await state.set_state(RecruiterRegistration.full_name)
     await message.answer("👤 Введите ваше ФИО:")
@@ -30,31 +33,31 @@ async def rec_company(message: Message, state: FSMContext):
 
 @router.message(RecruiterRegistration.full_name, ~F.text.startswith("/"))
 async def rec_full_name(message: Message, state: FSMContext):
-    """Шаг 2: Сохраняем ФИО в FSM и переходим к следующему шагу"""
+    """Шаг 2: Сохраняем ФИО в FSM"""
     await state.update_data(full_name=message.text.strip())
     await state.set_state(RecruiterRegistration.position)
     await message.answer("💼 Введите вашу должность:")
 
 
-from sqlalchemy import select, delete
-from sqlalchemy.orm import selectinload
-
-@router.message(RecruiterRegistration.full_name_position, ~F.text.startswith("/"))
+@router.message(RecruiterRegistration.position, ~F.text.startswith("/"))
 async def rec_finish(message: Message, state: FSMContext):
+    """Шаг 3: Сохраняем должность и всё записываем в БД"""
     data = await state.get_data()
     company_name = (data.get("company_name") or "").strip()
-    full_name_position = (message.text or "").strip()
+    full_name = (data.get("full_name") or "").strip()
+    position = (message.text or "").strip()
 
     if not company_name:
         await message.answer("Не вижу компанию. Напишите /start и начните заново.")
+        await state.clear()
+        return
+
+    if not full_name:
+        await message.answer("Не вижу ФИО. Напишите /start и начните заново.")
+        await state.clear()
         return
 
     tg_id = message.from_user.id
-
-    # парсинг "ФИО и должность"
-    # (пока простая версия: всё в одну строку, потом улучшим)
-    full_name = full_name_position
-    position = None
 
     async for session in get_session():
         # 1) Company: найти или создать
@@ -63,18 +66,21 @@ async def rec_finish(message: Message, state: FSMContext):
         if company is None:
             company = Company(name=company_name)
             session.add(company)
-            await session.flush()  # <-- ВАЖНО: получаем company.id
+            await session.flush()
 
-        # 2) User: найти или создать (и НИГДЕ не передавать username, если колонки нет)
+        # 2) User: найти или создать
         res = await session.execute(select(User).where(User.telegram_id == tg_id))
         user = res.scalar_one_or_none()
         if user is None:
-            user = User(telegram_id=tg_id, role="recruiter")
+            user = User(
+                telegram_id=tg_id,
+                username=message.from_user.username,
+                role="recruiter"
+            )
             session.add(user)
             await session.flush()
         else:
             user.role = "recruiter"
-            await session.flush()
 
         # 3) Recruiter: найти или создать
         res = await session.execute(select(Recruiter).where(Recruiter.user_id == user.id))
@@ -91,10 +97,9 @@ async def rec_finish(message: Message, state: FSMContext):
         else:
             recruiter.full_name = full_name
             recruiter.position = position
-            await session.flush()
+            recruiter.is_approved = False
 
-        # 4) Связка recruiter_companies: убедиться что её нет, и добавить
-        # (без этого может быть дубль)
+        # 4) Связка recruiter_companies
         await session.execute(
             delete(RecruiterCompany).where(
                 RecruiterCompany.recruiter_id == recruiter.id,
@@ -103,7 +108,36 @@ async def rec_finish(message: Message, state: FSMContext):
         )
         session.add(RecruiterCompany(recruiter_id=recruiter.id, company_id=company.id))
 
+        # ══════════════════════════════════════════════════════════
+        # 5) НОВОЕ: Создаём заявку для админа
+        # ══════════════════════════════════════════════════════════
+
+        # Получаем следующий номер заявки
+        max_num_result = await session.execute(
+            select(sql_func.coalesce(
+                sql_func.max(RecruiterApplication.application_number), 0
+            ))
+        )
+        next_number = max_num_result.scalar() + 1
+
+        # Создаём заявку со статусом "pending"
+        application = RecruiterApplication(
+            application_number=next_number,
+            recruiter_id=recruiter.id,
+            company_id=company.id,
+            status="pending",
+        )
+        session.add(application)
+        # ══════════════════════════════════════════════════════════
+
         await session.commit()
 
     await state.clear()
-    await message.answer("⏳ Ваша заявка принята. Администратор проверит ваши данные.")
+    await message.answer(
+        "⏳ Ваша заявка принята!\n\n"
+        f"🏢 Компания: {company_name}\n"
+        f"👤 ФИО: {full_name}\n"
+        f"💼 Должность: {position}\n\n"
+        "Администратор проверит ваши данные.",
+        reply_markup=recruiter_pending_menu()
+    )

@@ -19,7 +19,8 @@ async def r_check_status(cb: CallbackQuery):
             await cb.answer()
             return
 
-        if recruiter.status != "approved":
+        # ИСПРАВЛЕНО: было recruiter.status, стало recruiter.is_approved
+        if not recruiter.is_approved:
             await cb.message.answer(
                 "⏳ Вы всё ещё на модерации. Админ скоро проверит данные.",
                 reply_markup=recruiter_pending_menu()
@@ -37,6 +38,5 @@ async def r_check_status(cb: CallbackQuery):
 
 @router.callback_query(F.data == "r:go_menu")
 async def r_go_menu(cb: CallbackQuery):
-    # Просто выводим стартовый выбор роли (или можно выводить меню по роли — позже сделаем красиво)
     await cb.message.answer("Выберите роль:", reply_markup=role_keyboard())
     await cb.answer()

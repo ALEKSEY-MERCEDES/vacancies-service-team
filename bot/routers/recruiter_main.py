@@ -32,7 +32,7 @@ async def recruiter_main(callback: CallbackQuery):
                 Vacancy.status == "open",
             )
         )
-        active_vacancies = res.scalar_one()
+        active_vacancies = res.scalar()
 
         # Новые отклики (sent)
         res = await session.execute(
@@ -43,11 +43,15 @@ async def recruiter_main(callback: CallbackQuery):
                 Application.status == "sent",
             )
         )
-        new_apps = res.scalar_one()
+        new_apps = res.scalar()
+
+    # ИСПРАВЛЕНО: показываем статус на основе is_approved
+    status_text = "✅ Подтвержден" if recruiter.is_approved else "⏳ На модерации"
 
     await callback.message.answer(
         f"💼 Кабинет рекрутера\n\n"
-        f"Статус: {recruiter.status}\n"
+        f"Статус: {status_text}\n"
         f"📄 Активных вакансий: {active_vacancies}\n"
         f"📩 Новых откликов: {new_apps}"
     )
+    await callback.answer()
