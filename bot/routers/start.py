@@ -44,10 +44,9 @@ async def start_cmd(message: Message, state: FSMContext):
                 await message.answer("Похоже, регистрация не завершена. Выберите роль заново.", reply_markup=role_keyboard())
                 return
 
-            if recruiter.status != "approved":
+            if not recruiter.is_approved:
                 await message.answer(
-                    "⏳ Ваша заявка на модерации. Доступ откроется после подтверждения.",
-                    reply_markup=recruiter_pending_menu(),
+                    "⏳ Ваша заявка на рассмотрении. Администратор проверит данные."
                 )
                 return
 

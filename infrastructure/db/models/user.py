@@ -14,10 +14,10 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),  # ← ВОТ ТУТ
+        server_default=text("gen_random_uuid()"),
     )
-
-    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
+    username: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True, nullable=False)
     role: Mapped[str] = mapped_column(String(16), nullable=False)
 
 

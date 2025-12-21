@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, DateTime, ForeignKey, func, text
+from sqlalchemy import ForeignKey, String, DateTime, func, text, Boolean
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship, backref
 
 from infrastructure.db.base import Base
 
@@ -24,20 +24,41 @@ class Recruiter(Base):
         nullable=False,
     )
 
-    # pending | approved | rejected
-    status: Mapped[str] = mapped_column(
-        String(16),
-        nullable=False,
-        server_default="pending",
-    )
-
-    full_name_position: Mapped[str | None] = mapped_column(
+    full_name: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
+        comment="ФИО рекрутера",
+    )
+
+    position: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Должность",
+    )
+
+    is_approved: Mapped[bool] = mapped_column(
+        Boolean,
+        server_default="false",
+        nullable=False,
+        comment="Одобрен ли админом",
     )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
+    )
+
+    user = relationship(
+    "User",
+    backref=backref("recruiter", uselist=False),
+    lazy="joined",
+)
+
+    # Связь с компаниями через промежуточную таблицу
+    companies = relationship(
+        "Company",
+        secondary="recruiter_companies",
+        backref="recruiters",
+        lazy="selectin"
     )
