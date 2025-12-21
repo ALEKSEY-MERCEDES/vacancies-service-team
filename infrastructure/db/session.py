@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -19,3 +20,11 @@ SessionLocal = async_sessionmaker(
 async def get_session() -> AsyncSession:
     async with SessionLocal() as session:
         yield session
+
+@asynccontextmanager
+async def get_db():
+    async with SessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
