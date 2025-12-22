@@ -1,64 +1,61 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message
-from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery
 from sqlalchemy import select, update
 
-from bot.states.recruiter_invite import RecruiterInvite
 from infrastructure.db.session import get_session
-from infrastructure.db.models import Candidate, User, Application
+from infrastructure.db.models import Application, Candidate, User, Vacancy
+from bot.utils.callbacks import unpack_uuid
+from bot.routers.recruiter_vacancy_detail import render_responses
 
 router = Router()
 
 
 @router.callback_query(F.data.startswith("invite:"))
-async def invite_start(callback: CallbackQuery, state: FSMContext):
-    _, candidate_id, vacancy_id = callback.data.split(":")
-    await state.update_data(candidate_id=candidate_id, vacancy_id=vacancy_id)
-    await state.set_state(RecruiterInvite.message)
-    await callback.message.answer("Напишите сообщение кандидату (оно уйдёт от имени бота):")
+async def invite_candidate(cb: CallbackQuery):
+    # invite:<c_short>:<v_short>
+    _, c_short, v_short = cb.data.split(":")
+    candidate_id = unpack_uuid(c_short)
+    vacancy_id = unpack_uuid(v_short)
 
-
-@router.message(RecruiterInvite.message, ~F.text.startswith("/"))
-async def invite_send(message: Message, state: FSMContext):
-    data = await state.get_data()
-    candidate_id = data["candidate_id"]
-    vacancy_id = data["vacancy_id"]
-    invite_text = (message.text or "").strip()
-
-    if not invite_text:
-        await message.answer("Сообщение не может быть пустым. Напишите текст:")
-        return
+    candidate_tg = None
+    vacancy_title = "Вакансия"
 
     async for session in get_session():
-        # достать tg кандидата: Candidate.user_id -> User.telegram_id
-        res = await session.execute(
+        app_res = await session.execute(
+            select(Application).where(
+                Application.candidate_id == candidate_id,
+                Application.vacancy_id == vacancy_id,
+            )
+        )
+        app = app_res.scalar_one_or_none()
+        if not app:
+            await cb.answer("Отклик не найден", show_alert=True)
+            return
+
+        await session.execute(
+            update(Application).where(Application.id == app.id).values(status="invited")
+        )
+        await session.commit()
+
+        tg_res = await session.execute(
             select(User.telegram_id)
             .select_from(Candidate)
             .join(User, User.id == Candidate.user_id)
             .where(Candidate.id == candidate_id)
         )
-        candidate_tg = res.scalar_one_or_none()
-        if not candidate_tg:
-            await message.answer("❌ Не нашёл Telegram кандидата")
-            await state.clear()
-            return
+        candidate_tg = tg_res.scalar_one_or_none()
 
-        # обновить статус отклика
-        await session.execute(
-            update(Application)
-            .where(
-                Application.vacancy_id == vacancy_id,
-                Application.candidate_id == candidate_id,
-            )
-            .values(status="invited", message=invite_text)
+        vac_res = await session.execute(select(Vacancy.title).where(Vacancy.id == vacancy_id))
+        vacancy_title = vac_res.scalar_one_or_none() or vacancy_title
+
+        # ✅ возвращаем рекрутера в список откликов (обновляем текущий экран)
+        await render_responses(cb, session, vacancy_id, edit=True)
+
+    if candidate_tg:
+        await cb.bot.send_message(
+            candidate_tg,
+            f"📞 Вас пригласили на вакансию: <b>{vacancy_title}</b>",
+            parse_mode="HTML",
         )
-        await session.commit()
 
-    # отправка кандидату (важно: bot доступен через message.bot)
-    await message.bot.send_message(
-        chat_id=candidate_tg,
-        text="✅ Вас пригласили на следующий этап!\n\n" + invite_text,
-    )
-
-    await state.clear()
-    await message.answer("✅ Приглашение отправлено кандидату.")
+    await cb.answer("✅ Кандидат приглашён", show_alert=True)

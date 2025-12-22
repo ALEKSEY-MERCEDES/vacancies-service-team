@@ -9,10 +9,9 @@ def recruiter_pending_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🔄 Проверить статус", callback_data="r:check_status")],
-            [InlineKeyboardButton(text="🏠 В меню", callback_data="r:go_menu")],
+            [InlineKeyboardButton(text="🏠 В меню", callback_data="r:menu")],
         ]
     )
-
 
 def recruiter_main_menu():
     return InlineKeyboardMarkup(inline_keyboard=[

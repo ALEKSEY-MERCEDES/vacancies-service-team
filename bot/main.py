@@ -10,7 +10,7 @@ from infrastructure.config import settings
 from bot.routers import candidate_vacancies
 from bot.routers import start, registration_candidate, registration_recruiter, registration_admin, reset
 from bot.routers import candidate_my_apps
-
+from bot.routers import recruiter_vacancy_detail
 
 from bot.routers import (
     start, registration_candidate, registration_recruiter, registration_admin, reset,
@@ -42,6 +42,7 @@ async def main():
     dp.include_router(recruiter_candidate_detail.router)
     dp.include_router(recruiter_invite.router)
     dp.include_router(recruiter_reject.router)
+
     await dp.start_polling(bot)
 
 

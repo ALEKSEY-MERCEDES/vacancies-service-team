@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from sqlalchemy import select, func
-
+from bot.keyboards.recruiter import recruiter_main_menu
 from infrastructure.db.session import get_session
 from infrastructure.db.models import User, Recruiter, Vacancy, Application
 
@@ -52,6 +52,7 @@ async def recruiter_main(callback: CallbackQuery):
         f"💼 Кабинет рекрутера\n\n"
         f"Статус: {status_text}\n"
         f"📄 Активных вакансий: {active_vacancies}\n"
-        f"📩 Новых откликов: {new_apps}"
+        f"📩 Новых откликов: {new_apps}",
+        reply_markup=recruiter_main_menu()
     )
     await callback.answer()

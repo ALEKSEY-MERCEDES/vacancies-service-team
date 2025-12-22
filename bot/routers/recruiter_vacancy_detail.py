@@ -1,33 +1,91 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 
+from bot.utils.callbacks import unpack_uuid
 from infrastructure.db.session import get_session
-from infrastructure.db.models import Vacancy, Application
+from infrastructure.db.models import Vacancy, Application, Candidate
 from bot.keyboards.recruiter_vacancy_detail import recruiter_vacancy_detail_kb
+from bot.keyboards.recruiter_responses import recruiter_responses_kb
 
 router = Router()
 
 
-@router.callback_query(F.data.startswith("vacancy:"))
-async def vacancy_detail(callback: CallbackQuery):
-    vacancy_id = callback.data.split(":")[1]
+async def render_responses(cb: CallbackQuery, session, vacancy_id: str, edit: bool = False):
+    """
+    Рисует список откликов на вакансию.
+    edit=False -> message.answer(...)
+    edit=True  -> message.edit_text(...)
+    """
+    result = await session.execute(
+        select(Application, Candidate)
+        .join(Candidate, Candidate.id == Application.candidate_id)
+        .where(Application.vacancy_id == vacancy_id)
+        .order_by(Application.created_at.desc())
+    )
+
+    applications_ui = []
+    for app, candidate in result.all():
+        applications_ui.append(
+            {
+                "candidate_id": str(candidate.id),
+                "full_name": candidate.full_name or "Без имени",
+                "age": candidate.age or "?",
+                "status": app.status,
+            }
+        )
+
+    if not applications_ui:
+        text = "📭 Пока нет откликов на эту вакансию."
+        if edit:
+            await cb.message.edit_text(text)
+        else:
+            await cb.message.answer(text)
+        return
+
+    text = (
+        f"📩 Отклики на вакансию\n\n"
+        f"Всего кандидатов: {len(applications_ui)}"
+    )
+
+    kb = recruiter_responses_kb(applications_ui, vacancy_id)
+
+    if edit:
+        await cb.message.edit_text(text, reply_markup=kb)
+    else:
+        await cb.message.answer(text, reply_markup=kb)
+
+
+# =========================================================
+# 📄 КАРТОЧКА ВАКАНСИИ
+# recruiter:vacancy:<v_short>
+# =========================================================
+@router.callback_query(
+    F.data.startswith("recruiter:vacancy:")
+    & ~F.data.endswith(":responses")
+    & ~F.data.endswith(":close")
+)
+async def recruiter_vacancy_detail(callback: CallbackQuery):
+    # recruiter:vacancy:<v_short>
+    v_short = callback.data.split(":")[2]
+    vacancy_id = unpack_uuid(v_short)
 
     async for session in get_session():
-        vacancy_result = await session.execute(
+        vacancy_res = await session.execute(
             select(Vacancy).where(Vacancy.id == vacancy_id)
         )
-        vacancy = vacancy_result.scalar_one_or_none()
+        vacancy = vacancy_res.scalar_one_or_none()
 
         if not vacancy:
             await callback.message.answer("❌ Вакансия не найдена")
+            await callback.answer()
             return
 
-        apps_result = await session.execute(
+        apps_res = await session.execute(
             select(func.count(Application.id))
             .where(Application.vacancy_id == vacancy.id)
         )
-        applications_count = apps_result.scalar() or 0
+        applications_count = apps_res.scalar() or 0
 
     status_text = "🟢 Активна" if vacancy.status == "open" else "🔴 Закрыта"
 
@@ -36,5 +94,44 @@ async def vacancy_detail(callback: CallbackQuery):
         f"Статус: {status_text}\n\n"
         f"Всего откликов: {applications_count}\n"
         f"Опубликована: {vacancy.created_at:%d.%m.%Y}",
-        reply_markup=recruiter_vacancy_detail_kb(str(vacancy.id)),
+        reply_markup=recruiter_vacancy_detail_kb(v_short),  # ✅ ВАЖНО: сюда v_short
     )
+    await callback.answer()
+
+
+# =========================================================
+# 📩 ОТКЛИКИ
+# recruiter:vacancy:<v_short>:responses
+# =========================================================
+@router.callback_query(F.data.startswith("recruiter:vacancy:") & F.data.endswith(":responses"))
+async def recruiter_vacancy_responses(callback: CallbackQuery):
+    # recruiter:vacancy:<v_short>:responses
+    v_short = callback.data.split(":")[2]
+    vacancy_id = unpack_uuid(v_short)
+
+    async for session in get_session():
+        await render_responses(callback, session, vacancy_id, edit=False)
+
+    await callback.answer()
+
+
+# =========================================================
+# 📥 ЗАКРЫТЬ ВАКАНСИЮ
+# recruiter:vacancy:<v_short>:close
+# =========================================================
+@router.callback_query(F.data.startswith("recruiter:vacancy:") & F.data.endswith(":close"))
+async def recruiter_vacancy_close(callback: CallbackQuery):
+    # recruiter:vacancy:<v_short>:close
+    v_short = callback.data.split(":")[2]
+    vacancy_id = unpack_uuid(v_short)
+
+    async for session in get_session():
+        await session.execute(
+            update(Vacancy)
+            .where(Vacancy.id == vacancy_id)
+            .values(status="closed")
+        )
+        await session.commit()
+
+    await callback.message.answer("📥 Вакансия закрыта (в архив).")
+    await callback.answer()

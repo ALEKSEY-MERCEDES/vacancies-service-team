@@ -5,25 +5,29 @@ from sqlalchemy import select, update
 from infrastructure.db.session import get_session
 from infrastructure.db.models import Candidate, Application
 from bot.keyboards.recruiter_candidate_detail import recruiter_candidate_detail_kb
+from bot.utils.callbacks import unpack_uuid
 
 router = Router()
 
 
-@router.callback_query(F.data.startswith("candidate:"))
+@router.callback_query(F.data.startswith("cand:"))
 async def recruiter_candidate_detail(callback: CallbackQuery):
-    _, candidate_id, vacancy_id = callback.data.split(":")
+    # cand:<c_short>:<v_short>
+    _, c_short, v_short = callback.data.split(":")
+    candidate_id = unpack_uuid(c_short)
+    vacancy_id = unpack_uuid(v_short)
 
     async for session in get_session():
-        # 1) кандидат
         cand_res = await session.execute(
             select(Candidate).where(Candidate.id == candidate_id)
         )
         candidate = cand_res.scalar_one_or_none()
         if not candidate:
             await callback.message.answer("❌ Кандидат не найден")
+            await callback.answer()
             return
 
-        # 2) пометить отклик как viewed (если был sent)
+        # пометить sent -> viewed
         await session.execute(
             update(Application)
             .where(
@@ -44,9 +48,10 @@ async def recruiter_candidate_detail(callback: CallbackQuery):
 
     await callback.message.answer(
         text,
-        reply_markup=recruiter_candidate_detail_kb(candidate_id, vacancy_id),
+        reply_markup=recruiter_candidate_detail_kb(str(candidate_id), str(vacancy_id)),
     )
 
-    # Если есть резюме — отправим файлом след. сообщением
     if candidate.resume_file_id:
         await callback.message.answer_document(candidate.resume_file_id)
+
+    await callback.answer()

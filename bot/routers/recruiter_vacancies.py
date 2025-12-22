@@ -56,3 +56,4 @@ async def recruiter_vacancies(callback: CallbackQuery):
         "Нажмите на вакансию, чтобы посмотреть детали.",
         reply_markup=recruiter_vacancies_kb(vacancies_ui),
     )
+    await callback.answer()  # ✅ вот это добавь
