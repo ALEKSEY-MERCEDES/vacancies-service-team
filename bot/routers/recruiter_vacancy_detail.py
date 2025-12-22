@@ -2,13 +2,25 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from sqlalchemy import select, func, update
 
-from bot.utils.callbacks import unpack_uuid
 from infrastructure.db.session import get_session
 from infrastructure.db.models import Vacancy, Application, Candidate
 from bot.keyboards.recruiter_vacancy_detail import recruiter_vacancy_detail_kb
 from bot.keyboards.recruiter_responses import recruiter_responses_kb
+from bot.utils.callbacks import unpack_uuid
 
 router = Router()
+
+
+def safe_uuid(token: str) -> str:
+    """
+    Принимает либо v_short (упакованный), либо полный UUID.
+    Возвращает полный UUID строкой.
+    """
+    # полный uuid обычно 36 символов и с дефисами
+    if len(token) >= 32 and "-" in token:
+        return token
+
+    return unpack_uuid(token)
 
 
 async def render_responses(cb: CallbackQuery, session, vacancy_id: str, edit: bool = False):
@@ -64,11 +76,12 @@ async def render_responses(cb: CallbackQuery, session, vacancy_id: str, edit: bo
     F.data.startswith("recruiter:vacancy:")
     & ~F.data.endswith(":responses")
     & ~F.data.endswith(":close")
+    & ~F.data.endswith(":reopen")   # ✅ добавили
 )
 async def recruiter_vacancy_detail(callback: CallbackQuery):
-    # recruiter:vacancy:<v_short>
-    v_short = callback.data.split(":")[2]
-    vacancy_id = unpack_uuid(v_short)
+    # recruiter:vacancy:<v_token>
+    v_token = callback.data.split(":")[2]
+    vacancy_id = safe_uuid(v_token)
 
     async for session in get_session():
         vacancy_res = await session.execute(
@@ -94,7 +107,8 @@ async def recruiter_vacancy_detail(callback: CallbackQuery):
         f"Статус: {status_text}\n\n"
         f"Всего откликов: {applications_count}\n"
         f"Опубликована: {vacancy.created_at:%d.%m.%Y}",
-        reply_markup=recruiter_vacancy_detail_kb(v_short),  # ✅ ВАЖНО: сюда v_short
+        reply_markup=recruiter_vacancy_detail_kb(v_token, vacancy.status),
+        # ✅ ВОТ ТУТ
     )
     await callback.answer()
 
@@ -105,9 +119,8 @@ async def recruiter_vacancy_detail(callback: CallbackQuery):
 # =========================================================
 @router.callback_query(F.data.startswith("recruiter:vacancy:") & F.data.endswith(":responses"))
 async def recruiter_vacancy_responses(callback: CallbackQuery):
-    # recruiter:vacancy:<v_short>:responses
-    v_short = callback.data.split(":")[2]
-    vacancy_id = unpack_uuid(v_short)
+    v_token = callback.data.split(":")[2]
+    vacancy_id = safe_uuid(v_token)
 
     async for session in get_session():
         await render_responses(callback, session, vacancy_id, edit=False)
@@ -121,9 +134,8 @@ async def recruiter_vacancy_responses(callback: CallbackQuery):
 # =========================================================
 @router.callback_query(F.data.startswith("recruiter:vacancy:") & F.data.endswith(":close"))
 async def recruiter_vacancy_close(callback: CallbackQuery):
-    # recruiter:vacancy:<v_short>:close
-    v_short = callback.data.split(":")[2]
-    vacancy_id = unpack_uuid(v_short)
+    v_token = callback.data.split(":")[2]
+    vacancy_id = safe_uuid(v_token)
 
     async for session in get_session():
         await session.execute(
@@ -134,4 +146,19 @@ async def recruiter_vacancy_close(callback: CallbackQuery):
         await session.commit()
 
     await callback.message.answer("📥 Вакансия закрыта (в архив).")
+    await callback.answer()
+@router.callback_query(F.data.startswith("recruiter:vacancy:") & F.data.endswith(":reopen"))
+async def recruiter_vacancy_reopen(callback: CallbackQuery):
+    v_token = callback.data.split(":")[2]
+    vacancy_id = safe_uuid(v_token)
+
+    async for session in get_session():
+        await session.execute(
+            update(Vacancy)
+            .where(Vacancy.id == vacancy_id)
+            .values(status="open")
+        )
+        await session.commit()
+
+    await callback.message.answer("♻️ Вакансия снова активна (открыта).")
     await callback.answer()

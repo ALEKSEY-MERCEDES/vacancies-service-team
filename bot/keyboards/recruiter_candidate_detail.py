@@ -1,7 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot.utils.callbacks import pack_uuid
 
-
 def recruiter_candidate_detail_kb(candidate_id: str, vacancy_id: str) -> InlineKeyboardMarkup:
     c = pack_uuid(str(candidate_id))
     v = pack_uuid(str(vacancy_id))
@@ -15,7 +14,7 @@ def recruiter_candidate_detail_kb(candidate_id: str, vacancy_id: str) -> InlineK
             [
                 InlineKeyboardButton(
                     text="🔙 К списку",
-                    callback_data=f"recruiter:vacancy:{v}:responses"  # ✅ short
+                    callback_data=f"recruiter:vacancy:{v}:responses"   # ✅ ТОЛЬКО v_short
                 )
             ],
         ]
