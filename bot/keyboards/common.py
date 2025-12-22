@@ -4,10 +4,10 @@ def candidate_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🔍 Смотреть вакансии", callback_data="vacancies")],
+            [InlineKeyboardButton(text="📨 Мои отклики", callback_data="c:my_apps")],  # 👈 ДОБАВИЛИ
             [InlineKeyboardButton(text="🔄 Начать заново", callback_data="wipe_me")],
         ]
     )
-
 def recruiter_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[

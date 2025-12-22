@@ -7,7 +7,10 @@ load_dotenv()
 from bot.routers import registration_admin
 from bot.routers import recruiter_common
 from infrastructure.config import settings
+from bot.routers import candidate_vacancies
 from bot.routers import start, registration_candidate, registration_recruiter, registration_admin, reset
+from bot.routers import candidate_my_apps
+
 
 from bot.routers import (
     start, registration_candidate, registration_recruiter, registration_admin, reset,
@@ -27,6 +30,8 @@ async def main():
     dp.include_router(registration_recruiter.router)
     dp.include_router(reset.router)
     dp.include_router(recruiter_common.router)
+    dp.include_router(candidate_vacancies.router)
+    dp.include_router(candidate_my_apps.router)
     dp.include_router(admin_panel.router)
     dp.include_router(registration_admin.router)
     dp.include_router(recruiter_main.router)
