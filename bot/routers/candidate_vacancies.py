@@ -80,7 +80,9 @@ async def candidate_feed_start(cb: CallbackQuery, reply_markup=None):
         items, has_prev, has_next = await _get_feed(session, cand.id, page)
 
         if not items:
-            await cb.uuidmessage.answer("Пока нет доступных вакансий 😕", reply_markup=candidate_menu())
+            await cb.message.answer("Пока нет доступных вакансий 😕",
+                                    reply_markup=candidate_menu())
+
             await cb.answer()
             return
 
