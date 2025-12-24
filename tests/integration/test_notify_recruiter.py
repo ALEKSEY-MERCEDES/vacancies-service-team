@@ -2,10 +2,10 @@
 import pytest
 from unittest.mock import AsyncMock
 
-from infrastructure.db.models import (
+from src.infrastructure.db.models import (
     User, Recruiter, Company, Vacancy
 )
-from bot.utils.notify_recruiter import notify_recruiter_new_application
+from src.bot.utils.notify_recruiter import notify_recruiter_new_application
 
 
 @pytest.mark.asyncio
