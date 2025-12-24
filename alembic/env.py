@@ -5,11 +5,11 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from infrastructure.config import settings
-from infrastructure.db.base import Base
-
+from src.core.config import settings
+from src.infrastructure.db.base import Base
+import src.infrastructure.db.models
 # ВАЖНО: просто импортируем модуль, чтобы зарегистрировались все модели
-import infrastructure.db.models  # noqa: F401
+import src.infrastructure.db.models  # noqa: F401
 
 
 config = context.config

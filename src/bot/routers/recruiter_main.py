@@ -1,0 +1,58 @@
+from aiogram import Router, F
+from aiogram.types import CallbackQuery
+from sqlalchemy import select, func
+from src.bot.keyboards.recruiter import recruiter_main_menu
+from src.infrastructure.db.session import get_session
+from src.infrastructure.db.models import User, Recruiter, Vacancy, Application
+
+router = Router()
+
+
+@router.callback_query(F.data == "r:menu")
+async def recruiter_main(callback: CallbackQuery):
+    tg_id = callback.from_user.id
+
+    async for session in get_session():
+        res = await session.execute(select(User).where(User.telegram_id == tg_id))
+        user = res.scalar_one_or_none()
+        if not user or user.role != "recruiter":
+            await callback.answer("Вы не рекрутер", show_alert=True)
+            return
+
+        res = await session.execute(select(Recruiter).where(Recruiter.user_id == user.id))
+        recruiter = res.scalar_one_or_none()
+        if not recruiter:
+            await callback.message.answer("Сначала пройдите регистрацию рекрутера.")
+            return
+
+        # Активные вакансии
+        res = await session.execute(
+            select(func.count(Vacancy.id)).where(
+                Vacancy.recruiter_id == recruiter.id,
+                Vacancy.status == "open",
+            )
+        )
+        active_vacancies = res.scalar()
+
+        # Новые отклики (sent)
+        res = await session.execute(
+            select(func.count(Application.id))
+            .join(Vacancy, Vacancy.id == Application.vacancy_id)
+            .where(
+                Vacancy.recruiter_id == recruiter.id,
+                Application.status == "sent",
+            )
+        )
+        new_apps = res.scalar()
+
+    # ИСПРАВЛЕНО: показываем статус на основе is_approved
+    status_text = "✅ Подтвержден" if recruiter.is_approved else "⏳ На модерации"
+
+    await callback.message.answer(
+        f"💼 Кабинет рекрутера\n\n"
+        f"Статус: {status_text}\n"
+        f"📄 Активных вакансий: {active_vacancies}\n"
+        f"📩 Новых откликов: {new_apps}",
+        reply_markup=recruiter_main_menu()
+    )
+    await callback.answer()
