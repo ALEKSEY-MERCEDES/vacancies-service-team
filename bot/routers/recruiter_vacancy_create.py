@@ -62,14 +62,14 @@ async def step_description(message: Message, state: FSMContext):
 
     await state.update_data(description=desc)
     await state.set_state(VacancyCreate.salary)
-    await message.answer("Укажите вилку зарплаты (например: 50000-80000).")
+    await message.answer("Укажите диапазон зарплаты (например: 50000-80000).")
 
 
 @router.message(VacancyCreate.salary, ~F.text.startswith("/"))
 async def step_salary(message: Message, state: FSMContext):
     salary = (message.text or "").strip()
     if not salary:
-        await message.answer("Введите вилку зарплаты текстом.")
+        await message.answer("Введите диапазон зарплаты текстом.")
         return
 
     await state.update_data(salary=salary)

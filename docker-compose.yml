@@ -1,21 +1,35 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:15
     container_name: vacancies_db
     restart: unless-stopped
-
     environment:
       POSTGRES_DB: vacancies
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
-
     ports:
       - "5432:5432"
-
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d vacancies"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  bot:
+    image: eapetrov/vacancies-bot:latest
+    container_name: vacancies_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "./scripts/wait_for_db.sh && alembic upgrade head && python -m bot.main"
 
 volumes:
   pgdata:
