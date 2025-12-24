@@ -1,7 +1,7 @@
 import uuid
 import pytest
 
-from bot.utils.callbacks import pack_uuid, unpack_uuid
+from src.bot.utils.callbacks import pack_uuid, unpack_uuid
 
 
 def test_pack_uuid_returns_string():
