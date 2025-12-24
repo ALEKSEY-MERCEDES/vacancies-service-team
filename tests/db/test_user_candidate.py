@@ -1,5 +1,5 @@
 import pytest
-from infrastructure.db.models import User, Candidate
+from src.infrastructure.db.models import User, Candidate
 
 
 @pytest.mark.asyncio
