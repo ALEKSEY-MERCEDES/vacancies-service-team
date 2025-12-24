@@ -331,22 +331,35 @@ sequenceDiagram
   
 ### Работа бота от лица соискателя
 
-<img src="images/photo_2025-11-25_13-02-10.jpg" width="280" alt="Сообщение бота 1">
-<img src="images/photo_2025-11-25_13-02-27.jpg" width="280" alt="Сообщение бота 2">
-<img src="images/photo_2025-11-25_13-02-52.jpg" width="280" alt="Сообщение бота 3">
-<img src="images/photo_2025-11-25_13-41-47.jpg" width="280" alt="Сообщение бота 8">
+<img src="images/foto1.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto2.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto3.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto4.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto5.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto7.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto8.jpg" width="280" alt="Сообщение бота 1">
 
 ### Работа бота от лица рекрутера
-<img src="images/photo_2025-11-25_13-03-10.jpg" width="280" alt="Сообщение бота 4">
+
+<img src="images/foto9.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto10.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto11.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto12.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto13.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto14.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto15.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto16.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto17.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto18.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto19.jpg" width="280" alt="Сообщение бота 1">
 
 ### Работа бота от лица админа
-<img src="images/photo_2025-11-25_13-03-29.jpg" width="280" alt="Сообщение бота 5">
-<img src="images/photo_2025-11-25_13-03-49.jpg" width="280" alt="Сообщение бота 6">
 
-<img src="images/photo_2025-11-25_13-04-11.jpg" width="280" alt="Сообщение бота 7">
-
-<img src="images/photo_2025-11-25_13-42-21.jpg" width="280" alt="Сообщение бота 9">
-
+<img src="images/foto20.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto21.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto22.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto23.jpg" width="280" alt="Сообщение бота 1">
+<img src="images/foto24.jpg" width="280" alt="Сообщение бота 1">
 </div>
 
 
