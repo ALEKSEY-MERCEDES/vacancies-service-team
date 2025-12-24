@@ -1,4 +1,3 @@
-# src/main.py
 from src.bot.main import main
 
 

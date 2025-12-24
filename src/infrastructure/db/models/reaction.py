@@ -29,7 +29,6 @@ class Reaction(Base):
         nullable=False,
     )
 
-    # like | dislike
     value: Mapped[str] = mapped_column(String(8), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(

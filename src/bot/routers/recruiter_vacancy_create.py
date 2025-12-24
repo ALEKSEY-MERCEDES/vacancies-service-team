@@ -26,7 +26,6 @@ async def _get_recruiter_id_by_tg(session, telegram_id: int):
 
 
 async def _get_company_id_for_recruiter(session, recruiter_id):
-    # Берём первую компанию рекрутера (у тебя связь многие-ко-многим)
     res = await session.execute(
         select(RecruiterCompany.company_id).where(RecruiterCompany.recruiter_id == recruiter_id)
     )
@@ -89,7 +88,6 @@ async def step_city_and_preview(message: Message, state: FSMContext):
     description = data["description"]
     salary = data["salary"]
 
-    # Собираем единый description, чтобы не менять БД
     full_description = (
         f"📍 Город: {city}\n"
         f"💰 Зарплата: {salary}\n\n"
@@ -102,7 +100,6 @@ async def step_city_and_preview(message: Message, state: FSMContext):
             await message.answer("Сначала зарегистрируйтесь как рекрутер.")
             return
 
-        # Берём company_id из связки recruiter_companies
         company_id = await _get_company_id_for_recruiter(session, recruiter.id)
         if not company_id:
             await message.answer("Не нашёл компанию рекрутера в базе. Перерегистрируйся (или проверь recruiter_companies).")
@@ -111,7 +108,7 @@ async def step_city_and_preview(message: Message, state: FSMContext):
         vacancy = Vacancy(
             title=title,
             description=full_description,
-            status="open",  # сразу open; можно сделать draft, если добавишь статус
+            status="open",
             company_id=company_id,
             recruiter_id=recruiter.id,
         )
@@ -122,7 +119,6 @@ async def step_city_and_preview(message: Message, state: FSMContext):
 
     await state.clear()
 
-    # Preview как в макете
     await message.answer(
         "Проверьте вакансию перед публикацией:\n\n"
         f"💼 {title}\n"
@@ -135,7 +131,6 @@ async def step_city_and_preview(message: Message, state: FSMContext):
 async def publish_vacancy(callback: CallbackQuery):
     vacancy_id = callback.data.split(":", 1)[1]
 
-    # сейчас вакансия и так open, поэтому просто подтверждаем
     await callback.message.answer(
         "✅ Вакансия опубликована!",
         reply_markup=recruiter_main_menu(),

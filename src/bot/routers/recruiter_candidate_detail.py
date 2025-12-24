@@ -12,7 +12,6 @@ router = Router()
 
 @router.callback_query(F.data.startswith("cand:"))
 async def recruiter_candidate_detail(callback: CallbackQuery):
-    # cand:<c_short>:<v_short>
     _, c_short, v_short = callback.data.split(":")
     candidate_id = unpack_uuid(c_short)
     vacancy_id = unpack_uuid(v_short)
@@ -27,7 +26,6 @@ async def recruiter_candidate_detail(callback: CallbackQuery):
             await callback.answer()
             return
 
-        # пометить sent -> viewed
         await session.execute(
             update(Application)
             .where(

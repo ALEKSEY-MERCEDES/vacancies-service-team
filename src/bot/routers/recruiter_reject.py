@@ -13,7 +13,6 @@ router = Router()
 
 @router.callback_query(F.data.startswith("reject_confirm:"))
 async def reject_confirm(cb: CallbackQuery):
-    # reject_confirm:<c_short>:<v_short>
     _, c_short, v_short = cb.data.split(":")
     await cb.message.answer(
         "⚠️ Вы уверены, что хотите отказать? Кандидату придёт стандартное уведомление.",
@@ -24,7 +23,6 @@ async def reject_confirm(cb: CallbackQuery):
 
 @router.callback_query(F.data.startswith("reject:"))
 async def reject_do(cb: CallbackQuery):
-    # reject:<c_short>:<v_short>
     _, c_short, v_short = cb.data.split(":")
     candidate_id = unpack_uuid(c_short)
     vacancy_id = unpack_uuid(v_short)
@@ -54,7 +52,6 @@ async def reject_do(cb: CallbackQuery):
         )
         await session.commit()
 
-        # ✅ вернуться в список откликов (edit)
         await render_responses(cb, session, vacancy_id, edit=True)
 
     if candidate_tg:

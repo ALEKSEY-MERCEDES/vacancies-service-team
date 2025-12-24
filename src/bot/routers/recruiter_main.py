@@ -25,7 +25,6 @@ async def recruiter_main(callback: CallbackQuery):
             await callback.message.answer("Сначала пройдите регистрацию рекрутера.")
             return
 
-        # Активные вакансии
         res = await session.execute(
             select(func.count(Vacancy.id)).where(
                 Vacancy.recruiter_id == recruiter.id,
@@ -34,7 +33,6 @@ async def recruiter_main(callback: CallbackQuery):
         )
         active_vacancies = res.scalar()
 
-        # Новые отклики (sent)
         res = await session.execute(
             select(func.count(Application.id))
             .join(Vacancy, Vacancy.id == Application.vacancy_id)
@@ -45,7 +43,6 @@ async def recruiter_main(callback: CallbackQuery):
         )
         new_apps = res.scalar()
 
-    # ИСПРАВЛЕНО: показываем статус на основе is_approved
     status_text = "✅ Подтвержден" if recruiter.is_approved else "⏳ На модерации"
 
     await callback.message.answer(

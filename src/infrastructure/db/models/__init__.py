@@ -1,4 +1,3 @@
-# src/infrastructure/db/models/__init__.py
 from .user import User
 from .candidate import Candidate
 from .recruiter import Recruiter

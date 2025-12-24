@@ -36,7 +36,7 @@ def recruiter_responses_kb(applications: list[dict], vacancy_id: str) -> InlineK
         row = [
             InlineKeyboardButton(
                 text=f"{icon} {app.get('full_name', 'Без имени')}, {app.get('age', '?')} лет",
-                callback_data=f"cand:{c_short}:{v_short}",  # это уже используется в твоих других роутерах
+                callback_data=f"cand:{c_short}:{v_short}",
             )
         ]
         if status != "invited":

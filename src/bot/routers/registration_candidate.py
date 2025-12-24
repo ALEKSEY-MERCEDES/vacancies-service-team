@@ -89,7 +89,6 @@ async def cand_resume(message: Message, state: FSMContext):
             session.add(user)
             await session.flush()
         else:
-            # если был другой ролью — обновим
             user.role = "candidate"
 
         result = await session.execute(

@@ -10,7 +10,7 @@ def recruiter_archive_kb(vacancies: list[dict]) -> InlineKeyboardMarkup:
         keyboard.append([
             InlineKeyboardButton(
                 text=f"🗄 {v['title']}  📩 {v['applications_count']}",
-                callback_data=f"recruiter:vacancy:{v_short}",  # ✅ открываем карточку
+                callback_data=f"recruiter:vacancy:{v_short}"
             )
         ])
 

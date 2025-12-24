@@ -22,10 +22,6 @@ from src.bot.keyboards.role import role_keyboard
 router = Router()
 
 
-# ═══════════════════════════════════════════════════════════
-# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-# ═══════════════════════════════════════════════════════════
-
 async def get_admin_stats(session: AsyncSession) -> dict:
     """Статистика для панели"""
     total_users_result = await session.execute(select(func.count(User.id)))
@@ -67,10 +63,6 @@ def format_admin_panel(stats: dict) -> str:
     )
 
 
-# ═══════════════════════════════════════════════════════════
-# ГЛАВНОЕ МЕНЮ
-# ═══════════════════════════════════════════════════════════
-
 @router.callback_query(F.data == "admin:back_main")
 async def admin_back_to_main(callback: CallbackQuery):
     """Возврат в главное меню"""
@@ -84,10 +76,6 @@ async def admin_back_to_main(callback: CallbackQuery):
     )
     await callback.answer()
 
-
-# ═══════════════════════════════════════════════════════════
-# ЗАЯВКИ РЕКРУТЕРОВ
-# ═══════════════════════════════════════════════════════════
 
 @router.callback_query(F.data == "admin:applications")
 async def admin_applications_list(callback: CallbackQuery):
@@ -248,10 +236,6 @@ async def admin_reject_application(callback: CallbackQuery, bot: Bot):
     await callback.answer("❌ Заявка отклонена", show_alert=True)
     await admin_applications_list(callback)
 
-
-# ═══════════════════════════════════════════════════════════
-# УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ
-# ═══════════════════════════════════════════════════════════
 
 @router.callback_query(F.data == "admin:users")
 async def admin_users_list(callback: CallbackQuery):
@@ -461,10 +445,6 @@ async def admin_confirm_delete_user(callback: CallbackQuery):
     await admin_users_list(callback)
 
 
-# ═══════════════════════════════════════════════════════════
-# УДАЛЕНИЕ ВАКАНСИЙ
-# ═══════════════════════════════════════════════════════════
-
 @router.callback_query(F.data == "admin:delete_vacancy")
 async def admin_delete_vacancy_list(callback: CallbackQuery):
     """Список вакансий для удаления"""
@@ -579,10 +559,6 @@ async def admin_confirm_delete_vacancy(callback: CallbackQuery):
     await callback.answer("🗑 Вакансия удалена", show_alert=True)
     await admin_delete_vacancy_list(callback)
 
-
-# ═══════════════════════════════════════════════════════════
-# ВЫХОД
-# ═══════════════════════════════════════════════════════════
 
 @router.callback_query(F.data == "admin:exit")
 async def admin_exit(callback: CallbackQuery):

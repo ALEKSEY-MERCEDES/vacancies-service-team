@@ -91,7 +91,6 @@ async def finish_apply(message: Message, state: FSMContext):
     if user_message == "-":
         user_message = None
 
-    # Данные для уведомления — заполняются внутри блока
     notify_data: dict | None = None
 
     async with get_db() as session:
@@ -130,7 +129,6 @@ async def finish_apply(message: Message, state: FSMContext):
         session.add(app)
         await session.commit()
 
-        # Собираем данные для уведомления в словарь
         if vacancy.recruiter:
             notify_data = {
                 "recruiter_id": vacancy.recruiter.id,
@@ -138,7 +136,6 @@ async def finish_apply(message: Message, state: FSMContext):
                 "candidate_name": cand.full_name or "Без имени",
             }
 
-    # Уведомляем рекрутера после закрытия сессии
     if notify_data:
         await notify_recruiter_new_application(
             bot=message.bot,

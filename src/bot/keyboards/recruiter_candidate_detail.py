@@ -14,7 +14,7 @@ def recruiter_candidate_detail_kb(candidate_id: str, vacancy_id: str) -> InlineK
             [
                 InlineKeyboardButton(
                     text="🔙 К списку",
-                    callback_data=f"recruiter:vacancy:{v}:responses"   # ✅ ТОЛЬКО v_short
+                    callback_data=f"recruiter:vacancy:{v}:responses"
                 )
             ],
         ]

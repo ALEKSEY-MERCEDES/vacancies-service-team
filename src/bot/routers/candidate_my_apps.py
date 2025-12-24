@@ -109,7 +109,6 @@ async def my_app_detail(cb: CallbackQuery):
         icon = STATUS_ICON.get(app.status, "⚪️")
         company_name = comp.name if comp else "—"
 
-        # Добавляем сообщение если есть
         message_text = ""
         if app.message:
             message_text = f"\n\n💬 <b>Ваше сообщение:</b>\n<i>{app.message}</i>"

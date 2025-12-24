@@ -24,12 +24,10 @@ def candidate_my_apps_kb(items: list[dict], page: int, has_prev: bool, has_next:
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-# 👇 ДОБАВИТЬ ЭТУ ФУНКЦИЮ
 def candidate_app_detail_kb(app_id: str, status: str) -> InlineKeyboardMarkup:
     """Клавиатура для детали отклика"""
     buttons = []
 
-    # Отменить можно только если статус "sent" или "viewed"
     if status in ("sent", "viewed"):
         buttons.append([
             InlineKeyboardButton(

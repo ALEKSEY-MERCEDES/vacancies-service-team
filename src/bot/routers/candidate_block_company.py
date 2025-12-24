@@ -78,7 +78,6 @@ async def block_company(cb: CallbackQuery):
             await cb.answer("Сначала зарегистрируйтесь", show_alert=True)
             return
 
-        # Находим вакансию чтобы узнать company_id
         vac_res = await session.execute(
             select(Vacancy).where(Vacancy.id == vacancy_uuid)
         )
@@ -90,7 +89,6 @@ async def block_company(cb: CallbackQuery):
         company_id = vacancy.company_id
         company_name = vacancy.company.name if vacancy.company else "компанию"
 
-        # Проверяем, не заблокирована ли уже
         existing = await session.execute(
             select(CandidateCompanyBlock).where(
                 CandidateCompanyBlock.candidate_id == cand.id,
@@ -105,10 +103,8 @@ async def block_company(cb: CallbackQuery):
             session.add(block)
             await session.commit()
 
-        # Показываем следующую вакансию
         items, has_prev, has_next = await _get_feed(session, cand.id, page)
 
-        # Отправляем ответ ВНУТРИ блока async with
         await cb.answer(f"🚫 {company_name} скрыта", show_alert=True)
 
         if not items:

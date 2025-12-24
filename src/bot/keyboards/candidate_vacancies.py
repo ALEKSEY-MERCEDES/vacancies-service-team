@@ -16,7 +16,6 @@ def candidate_vacancy_feed_kb(vacancy_id: str, page: int, has_prev: bool, has_ne
             InlineKeyboardButton(text="👍", callback_data=f"c:like:{vacancy_id}"),
             InlineKeyboardButton(text="👎", callback_data=f"c:dislike:{vacancy_id}"),
         ],
-        # 👇 ДОБАВИТЬ ЭТУ СТРОКУ
         [
             InlineKeyboardButton(
                 text="🚫 Не показывать компанию",

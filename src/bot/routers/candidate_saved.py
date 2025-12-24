@@ -40,7 +40,6 @@ async def saved_vacancies(cb: CallbackQuery):
             await cb.answer()
             return
 
-        # Находим все лайки кандидата
         q = (
             select(Reaction, Vacancy, Company)
             .join(Vacancy, Vacancy.id == Reaction.vacancy_id)
@@ -156,5 +155,4 @@ async def unsave_vacancy(cb: CallbackQuery):
 
         await cb.answer("💔 Убрано из сохранённых", show_alert=True)
 
-    # Возвращаемся к списку
     await saved_vacancies(cb)

@@ -5,7 +5,7 @@ def candidate_menu() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [InlineKeyboardButton(text="🔍 Смотреть вакансии", callback_data="vacancies")],
             [InlineKeyboardButton(text="📨 Мои отклики", callback_data="c:my_apps")],
-            [InlineKeyboardButton(text="⭐ Сохранённые", callback_data="c:saved")],  # 👈 ДОБАВИТЬ
+            [InlineKeyboardButton(text="⭐ Сохранённые", callback_data="c:saved")],
             [InlineKeyboardButton(text="🔄 Начать заново", callback_data="wipe_me")],
         ]
     )

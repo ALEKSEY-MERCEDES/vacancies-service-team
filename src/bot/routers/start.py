@@ -45,7 +45,6 @@ async def start_cmd(message: Message, state: FSMContext):
             _, recruiter, company = await get_recruiter_bundle(session, message.from_user.id)
 
             if not recruiter:
-                # странный случай: роль recruiter есть, а recruiter записи нет
                 await message.answer("Похоже, регистрация не завершена. Выберите роль заново.", reply_markup=role_keyboard())
                 return
 

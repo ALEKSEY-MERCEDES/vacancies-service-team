@@ -60,7 +60,6 @@ async def rec_finish(message: Message, state: FSMContext):
     tg_id = message.from_user.id
 
     async for session in get_session():
-        # 1) Company: найти или создать
         res = await session.execute(select(Company).where(Company.name == company_name))
         company = res.scalar_one_or_none()
         if company is None:
@@ -68,7 +67,6 @@ async def rec_finish(message: Message, state: FSMContext):
             session.add(company)
             await session.flush()
 
-        # 2) User: найти или создать
         res = await session.execute(select(User).where(User.telegram_id == tg_id))
         user = res.scalar_one_or_none()
         if user is None:
@@ -82,7 +80,6 @@ async def rec_finish(message: Message, state: FSMContext):
         else:
             user.role = "recruiter"
 
-        # 3) Recruiter: найти или создать
         res = await session.execute(select(Recruiter).where(Recruiter.user_id == user.id))
         recruiter = res.scalar_one_or_none()
         if recruiter is None:
@@ -99,7 +96,6 @@ async def rec_finish(message: Message, state: FSMContext):
             recruiter.position = position
             recruiter.is_approved = False
 
-        # 4) Связка recruiter_companies
         await session.execute(
             delete(RecruiterCompany).where(
                 RecruiterCompany.recruiter_id == recruiter.id
@@ -108,9 +104,6 @@ async def rec_finish(message: Message, state: FSMContext):
         session.add(
             RecruiterCompany(recruiter_id=recruiter.id, company_id=company.id))
 
-        # ══════════════════════════════════════════════════════════
-        # 5) Создаём заявку для админа (ОДИН РАЗ)
-        # ══════════════════════════════════════════════════════════
         existing_pending = await session.execute(
             select(RecruiterApplication).where(
                 RecruiterApplication.recruiter_id == recruiter.id,
@@ -134,8 +127,6 @@ async def rec_finish(message: Message, state: FSMContext):
                 )
             )
 
-
-        # Получаем следующий номер заявки
         max_num_result = await session.execute(
             select(sql_func.coalesce(
                 sql_func.max(RecruiterApplication.application_number), 0
@@ -143,7 +134,6 @@ async def rec_finish(message: Message, state: FSMContext):
         )
         next_number = max_num_result.scalar() + 1
 
-        # ══════════════════════════════════════════════════════════
 
         await session.commit()
 

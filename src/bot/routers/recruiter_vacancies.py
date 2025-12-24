@@ -14,7 +14,6 @@ async def recruiter_stats(cb: CallbackQuery):
     tg_id = cb.from_user.id
 
     async for session in get_session():
-        # 1) рекрутер
         recruiter_res = await session.execute(
             select(Recruiter)
             .join(User, User.id == Recruiter.user_id)
@@ -25,7 +24,6 @@ async def recruiter_stats(cb: CallbackQuery):
             await cb.answer("Рекрутер не найден", show_alert=True)
             return
 
-        # 2) статистика по вакансиям
         vac_counts = await session.execute(
             select(
                 func.count(Vacancy.id).label("total"),
@@ -39,7 +37,6 @@ async def recruiter_stats(cb: CallbackQuery):
         open_v = open_v or 0
         closed_v = closed_v or 0
 
-        # 3) статистика по откликам (по всем вакансиям рекрутера)
         app_counts = await session.execute(
             select(
                 func.count(Application.id).label("total"),

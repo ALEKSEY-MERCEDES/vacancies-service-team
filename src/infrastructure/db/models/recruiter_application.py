@@ -55,7 +55,6 @@ class RecruiterApplication(Base):
         comment="Когда рассмотрена",
     )
 
-    # Relationships для удобного доступа
     recruiter = relationship("Recruiter", backref="applications",
                              lazy="joined")
     company = relationship("Company", lazy="joined")

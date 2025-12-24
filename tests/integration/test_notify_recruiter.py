@@ -1,4 +1,3 @@
-# tests/integration/test_notify_recruiter.py
 import pytest
 from unittest.mock import AsyncMock
 

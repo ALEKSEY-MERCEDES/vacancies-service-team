@@ -31,7 +31,6 @@ class Application(Base):
 
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    # sent | viewed | invited | rejected
     status: Mapped[str] = mapped_column(
         String(16),
         nullable=False,

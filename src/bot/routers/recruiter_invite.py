@@ -12,7 +12,6 @@ router = Router()
 
 @router.callback_query(F.data.startswith("invite:"))
 async def invite_candidate(cb: CallbackQuery):
-    # invite:<c_short>:<v_short>
     _, c_short, v_short = cb.data.split(":")
     candidate_id = unpack_uuid(c_short)
     vacancy_id = unpack_uuid(v_short)
@@ -47,8 +46,6 @@ async def invite_candidate(cb: CallbackQuery):
 
         vac_res = await session.execute(select(Vacancy.title).where(Vacancy.id == vacancy_id))
         vacancy_title = vac_res.scalar_one_or_none() or vacancy_title
-
-        # ✅ возвращаем рекрутера в список откликов (обновляем текущий экран)
         await render_responses(cb, session, vacancy_id, edit=True)
 
     if candidate_tg:

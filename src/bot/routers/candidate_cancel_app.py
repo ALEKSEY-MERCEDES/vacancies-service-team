@@ -63,7 +63,6 @@ async def cancel_app(cb: CallbackQuery):
             await cb.answer("Ошибка", show_alert=True)
             return
 
-        # Проверяем что отклик принадлежит этому кандидату
         res = await session.execute(
             select(Application)
             .where(Application.id == app_uuid)
@@ -75,7 +74,6 @@ async def cancel_app(cb: CallbackQuery):
             await cb.answer("Отклик не найден", show_alert=True)
             return
 
-        # Удаляем
         await session.execute(
             delete(Application).where(Application.id == app_uuid)
         )
