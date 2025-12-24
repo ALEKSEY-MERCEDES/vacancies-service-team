@@ -1,7 +1,7 @@
 # tests/conftest.py
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from infrastructure.db.base import Base
+from src.infrastructure.db.base import Base
 
 
 @pytest.fixture(scope="function")
