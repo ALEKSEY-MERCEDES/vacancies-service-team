@@ -1,5 +1,5 @@
 import pytest
-from infrastructure.db.models import (
+from src.infrastructure.db.models import (
     User, Recruiter, Company, Vacancy
 )
 
