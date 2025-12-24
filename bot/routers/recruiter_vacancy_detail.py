@@ -8,20 +8,29 @@ from infrastructure.db.session import get_db
 from infrastructure.db.models import Vacancy, Application, Candidate, User
 from bot.keyboards.recruiter_vacancy_detail import recruiter_vacancy_detail_kb
 from bot.keyboards.recruiter_responses import recruiter_responses_kb
-from bot.utils.callbacks import unpack_uuid
+from bot.utils.callbacks import unpack_uuid, pack_uuid
 
 router = Router()
 
 
 def safe_uuid(token: str) -> str:
+    """Принимает либо v_short (упакованный), либо полный UUID."""
     if len(token) >= 32 and "-" in token:
         return token
     return unpack_uuid(token)
 
+
 class InviteCandidate(StatesGroup):
     waiting_for_text = State()
 
-async def render_responses(cb: CallbackQuery, session, vacancy_id: str, edit: bool = False, only_new: bool = False):
+
+async def render_responses(
+    cb: CallbackQuery,
+    session,
+    vacancy_id: str,
+    edit: bool = False,
+    only_new: bool = False,
+):
     result = await session.execute(
         select(Application, Candidate)
         .join(Candidate, Candidate.id == Application.candidate_id)
@@ -29,36 +38,35 @@ async def render_responses(cb: CallbackQuery, session, vacancy_id: str, edit: bo
         .order_by(Application.created_at.desc())
     )
 
-    applications = result.all()
+    rows = result.all()
 
     if only_new:
-        applications_ui = [
+        rows = [row for row in rows if row[0].status == "sent"]
+
+    applications_ui: list[dict] = []
+    for app, candidate in rows:
+        applications_ui.append(
             {
                 "candidate_id": str(candidate.id),
                 "full_name": candidate.full_name or "Без имени",
                 "age": candidate.age or "?",
                 "status": app.status,
             }
-            for app, candidate in applications
-            if app.status == "sent"
-        ]
-    else:
-        applications_ui = [
-            {
-                "candidate_id": str(candidate.id),
-                "full_name": candidate.full_name or "Без имени",
-                "age": candidate.age or "?",
-                "status": app.status,
-            }
-            for app, candidate in applications
-        ]
+        )
+
+    v_short = pack_uuid(str(vacancy_id))
 
     if not applications_ui:
         text = "📭 Пока нет откликов на эту вакансию."
+        back_kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="🔙 Назад", callback_data=f"recruiter:vacancy:{v_short}")]
+            ]
+        )
         if edit:
-            await cb.message.edit_text(text)
+            await cb.message.edit_text(text, reply_markup=back_kb)
         else:
-            await cb.message.answer(text)
+            await cb.message.answer(text, reply_markup=back_kb)
         return
 
     text = f"📩 Отклики на вакансию\n\nВсего кандидатов: {len(applications_ui)}"
@@ -70,11 +78,11 @@ async def render_responses(cb: CallbackQuery, session, vacancy_id: str, edit: bo
             [
                 InlineKeyboardButton(
                     text="🆕 Только новые",
-                    callback_data=f"recruiter:vacancy:{vacancy_id}:responses:filter:new",
+                    callback_data=f"rf:n:{v_short}",
                 ),
                 InlineKeyboardButton(
                     text="📋 Все",
-                    callback_data=f"recruiter:vacancy:{vacancy_id}:responses:filter:all",
+                    callback_data=f"rf:a:{v_short}",
                 ),
             ]
         ]
@@ -126,6 +134,7 @@ async def recruiter_vacancy_detail(callback: CallbackQuery):
         )
         await callback.answer()
 
+
 @router.callback_query(
     F.data.startswith("recruiter:vacancy:") & F.data.endswith(":responses")
 )
@@ -137,28 +146,23 @@ async def recruiter_vacancy_responses(callback: CallbackQuery):
         await render_responses(callback, session, vacancy_id)
         await callback.answer()
 
-@router.callback_query(
-    F.data.startswith("recruiter:vacancy:")
-    & F.data.contains(":responses:filter:")
-)
+
+@router.callback_query(F.data.startswith("rf:"))
 async def recruiter_responses_filter(cb: CallbackQuery):
-    parts = cb.data.split(":")
-    v_token = parts[2]
-    filter_type = parts[-1]
-    vacancy_id = safe_uuid(v_token)
-    only_new = filter_type == "new"
+    _, mode, v_short = cb.data.split(":")
+    vacancy_id = safe_uuid(v_short)
+    only_new = mode == "n"
 
     async with get_db() as session:
         await render_responses(cb, session, vacancy_id, edit=True, only_new=only_new)
         await cb.answer()
 
-@router.callback_query(
-    F.data.startswith("recruiter:application:") & F.data.contains(":invite")
-)
+
+@router.callback_query(F.data.startswith("inv:"))
 async def recruiter_invite_start(cb: CallbackQuery, state: FSMContext):
-    parts = cb.data.split(":")
-    candidate_id = safe_uuid(parts[2])
-    vacancy_id = safe_uuid(parts[4])
+    _, c_short, v_short = cb.data.split(":")
+    candidate_id = safe_uuid(c_short)
+    vacancy_id = safe_uuid(v_short)
 
     await state.update_data(candidate_id=candidate_id, vacancy_id=vacancy_id)
     await cb.message.answer("📝 Напишите сообщение кандидату:")
@@ -171,7 +175,7 @@ async def recruiter_invite_send(message: Message, state: FSMContext):
     data = await state.get_data()
     candidate_id = data["candidate_id"]
     vacancy_id = data.get("vacancy_id")
-    text_to_candidate = message.text
+    text_to_candidate = message.text or ""
 
     user_telegram_id = None
     vacancy_title = "неизвестна"
@@ -180,6 +184,7 @@ async def recruiter_invite_send(message: Message, state: FSMContext):
         await session.execute(
             update(Application)
             .where(Application.candidate_id == candidate_id)
+            .where(Application.vacancy_id == vacancy_id)
             .values(status="invited")
         )
         await session.commit()
@@ -210,6 +215,7 @@ async def recruiter_invite_send(message: Message, state: FSMContext):
 
     await message.answer("✅ Приглашение отправлено!")
     await state.clear()
+
 
 @router.callback_query(
     F.data.startswith("recruiter:vacancy:") & F.data.endswith(":close")
