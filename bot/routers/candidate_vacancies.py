@@ -22,9 +22,6 @@ async def _get_candidate(session, tg_id: int) -> Candidate | None:
 
 
 async def _get_feed(session, candidate_id, page: int):
-    """
-    Достаём open вакансии, исключая заблокированные компании (CandidateCompanyBlock).
-    """
     blocked_company_ids = select(CandidateCompanyBlock.company_id).where(
         CandidateCompanyBlock.candidate_id == candidate_id
     )

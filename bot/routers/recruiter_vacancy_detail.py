@@ -12,23 +12,12 @@ router = Router()
 
 
 def safe_uuid(token: str) -> str:
-    """
-    Принимает либо v_short (упакованный), либо полный UUID.
-    Возвращает полный UUID строкой.
-    """
-    # полный uuid обычно 36 символов и с дефисами
     if len(token) >= 32 and "-" in token:
         return token
-
     return unpack_uuid(token)
 
 
 async def render_responses(cb: CallbackQuery, session, vacancy_id: str, edit: bool = False):
-    """
-    Рисует список откликов на вакансию.
-    edit=False -> message.answer(...)
-    edit=True  -> message.edit_text(...)
-    """
     result = await session.execute(
         select(Application, Candidate)
         .join(Candidate, Candidate.id == Application.candidate_id)
@@ -68,18 +57,13 @@ async def render_responses(cb: CallbackQuery, session, vacancy_id: str, edit: bo
         await cb.message.answer(text, reply_markup=kb)
 
 
-# =========================================================
-# 📄 КАРТОЧКА ВАКАНСИИ
-# recruiter:vacancy:<v_short>
-# =========================================================
 @router.callback_query(
     F.data.startswith("recruiter:vacancy:")
     & ~F.data.endswith(":responses")
     & ~F.data.endswith(":close")
-    & ~F.data.endswith(":reopen")   # ✅ добавили
+    & ~F.data.endswith(":reopen")
 )
 async def recruiter_vacancy_detail(callback: CallbackQuery):
-    # recruiter:vacancy:<v_token>
     v_token = callback.data.split(":")[2]
     vacancy_id = safe_uuid(v_token)
 
@@ -108,15 +92,10 @@ async def recruiter_vacancy_detail(callback: CallbackQuery):
         f"Всего откликов: {applications_count}\n"
         f"Опубликована: {vacancy.created_at:%d.%m.%Y}",
         reply_markup=recruiter_vacancy_detail_kb(v_token, vacancy.status),
-        # ✅ ВОТ ТУТ
     )
     await callback.answer()
 
 
-# =========================================================
-# 📩 ОТКЛИКИ
-# recruiter:vacancy:<v_short>:responses
-# =========================================================
 @router.callback_query(F.data.startswith("recruiter:vacancy:") & F.data.endswith(":responses"))
 async def recruiter_vacancy_responses(callback: CallbackQuery):
     v_token = callback.data.split(":")[2]
@@ -128,10 +107,6 @@ async def recruiter_vacancy_responses(callback: CallbackQuery):
     await callback.answer()
 
 
-# =========================================================
-# 📥 ЗАКРЫТЬ ВАКАНСИЮ
-# recruiter:vacancy:<v_short>:close
-# =========================================================
 @router.callback_query(F.data.startswith("recruiter:vacancy:") & F.data.endswith(":close"))
 async def recruiter_vacancy_close(callback: CallbackQuery):
     v_token = callback.data.split(":")[2]
@@ -147,6 +122,8 @@ async def recruiter_vacancy_close(callback: CallbackQuery):
 
     await callback.message.answer("📥 Вакансия закрыта (в архив).")
     await callback.answer()
+
+
 @router.callback_query(F.data.startswith("recruiter:vacancy:") & F.data.endswith(":reopen"))
 async def recruiter_vacancy_reopen(callback: CallbackQuery):
     v_token = callback.data.split(":")[2]

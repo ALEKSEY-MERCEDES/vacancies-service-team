@@ -109,7 +109,7 @@ async def rec_finish(message: Message, state: FSMContext):
             RecruiterCompany(recruiter_id=recruiter.id, company_id=company.id))
 
         # ══════════════════════════════════════════════════════════
-        # 5) НОВОЕ: Создаём заявку для админа
+        # 5) Создаём заявку для админа (ОДИН РАЗ)
         # ══════════════════════════════════════════════════════════
         existing_pending = await session.execute(
             select(RecruiterApplication).where(
@@ -118,20 +118,22 @@ async def rec_finish(message: Message, state: FSMContext):
             )
         )
         if existing_pending.scalar_one_or_none() is None:
-            # создаём новую заявку
             max_num_result = await session.execute(
-                select(sql_func.coalesce(
-                    sql_func.max(RecruiterApplication.application_number), 0))
+                select(
+                    sql_func.coalesce(sql_func.max(RecruiterApplication.application_number), 0)
+                )
             )
             next_number = (max_num_result.scalar() or 0) + 1
 
-            application = RecruiterApplication(
-                application_number=next_number,
-                recruiter_id=recruiter.id,
-                company_id=company.id,
-                status="pending",
+            session.add(
+                RecruiterApplication(
+                    application_number=next_number,
+                    recruiter_id=recruiter.id,
+                    company_id=company.id,
+                    status="pending",
+                )
             )
-            session.add(application)
+
 
         # Получаем следующий номер заявки
         max_num_result = await session.execute(
@@ -141,14 +143,6 @@ async def rec_finish(message: Message, state: FSMContext):
         )
         next_number = max_num_result.scalar() + 1
 
-        # Создаём заявку со статусом "pending"
-        application = RecruiterApplication(
-            application_number=next_number,
-            recruiter_id=recruiter.id,
-            company_id=company.id,
-            status="pending",
-        )
-        session.add(application)
         # ══════════════════════════════════════════════════════════
 
         await session.commit()

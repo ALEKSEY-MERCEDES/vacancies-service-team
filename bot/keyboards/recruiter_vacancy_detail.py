@@ -1,7 +1,4 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from bot.utils.callbacks import pack_uuid
-
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 def recruiter_vacancy_detail_kb(v_short: str, status: str = "open") -> InlineKeyboardMarkup:
@@ -34,4 +31,3 @@ def recruiter_vacancy_detail_kb(v_short: str, status: str = "open") -> InlineKey
     ])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
-

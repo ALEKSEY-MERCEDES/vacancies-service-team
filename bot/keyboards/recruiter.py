@@ -31,4 +31,3 @@ def vacancy_preview_menu(vacancy_id: str) -> InlineKeyboardMarkup:
     kb.button(text="🔙 В кабинет", callback_data="r:menu")
     kb.adjust(1)
     return kb.as_markup()
-

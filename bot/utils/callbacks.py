@@ -4,17 +4,31 @@ import uuid
 
 
 def pack_uuid(u: str) -> str:
-    """
-    UUID (36 символов) -> короткая urlsafe base64 строка (~22 символа)
-    """
     b = uuid.UUID(str(u)).bytes
     return base64.urlsafe_b64encode(b).decode("ascii").rstrip("=")
 
 
 def unpack_uuid(s: str) -> str:
     """
-    короткая строка (~22) -> UUID строкой (36)
+    Принимает:
+      - short base64 (~22 символа)
+      - обычный uuid строкой (36 символов)
+    Возвращает uuid строкой (36).
     """
-    padding = "=" * (-len(s) % 4)
-    b = base64.urlsafe_b64decode(s + padding)
-    return str(uuid.UUID(bytes=b))
+    s = (s or "").strip()
+
+    # 1) уже UUID
+    try:
+        return str(uuid.UUID(s))
+    except Exception:
+        pass
+
+    # 2) short base64
+    try:
+        padding = "=" * (-len(s) % 4)
+        b = base64.urlsafe_b64decode(s + padding)
+        if len(b) != 16:
+            raise ValueError(f"decoded bytes len={len(b)} (expected 16)")
+        return str(uuid.UUID(bytes=b))
+    except Exception as e:
+        raise ValueError(f"Bad uuid token: {s}") from e
