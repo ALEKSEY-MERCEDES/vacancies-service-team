@@ -1,5 +1,5 @@
 from aiogram.types import Document
-from bot.utils.files import is_valid_resume
+from src.bot.utils.files import is_valid_resume
 
 
 def make_doc(
