@@ -182,8 +182,8 @@ async def recruiter_responses_filter(cb: CallbackQuery):
 )
 async def recruiter_invite_start(cb: CallbackQuery, state: FSMContext):
     parts = cb.data.split(":")
-    candidate_id = parts[2]
-    vacancy_id = parts[4] if len(parts) > 4 else None
+    candidate_id = safe_uuid(parts[2])
+    vacancy_id = safe_uuid(parts[4])
 
     await state.update_data(candidate_id=candidate_id, vacancy_id=vacancy_id)
     await cb.message.answer("📝 Напишите сообщение кандидату:")
